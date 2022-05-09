@@ -1,0 +1,6 @@
+import * as path from "path"
+
+export const root: string = path.resolve(__dirname, "..")
+export const tracks: string = path.resolve(__dirname, "..", "tracks")
+export const secrets: string = path.resolve(__dirname, "..", "configuration", "secrets.json")
+export const users: string = path.resolve(__dirname, "..", "configuration", "users.json")
