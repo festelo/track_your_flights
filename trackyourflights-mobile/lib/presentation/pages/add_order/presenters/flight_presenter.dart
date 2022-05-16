@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trackyourflights/domain/entities/flight.dart';
+import 'package:trackyourflights/domain/entities/flight_presearch_result.dart';
 import 'package:trackyourflights/domain/entities/flight_query_result.dart';
 import 'package:trackyourflights/presentation/debounce.dart';
 import 'package:trackyourflights/presentation/nonce.dart';
@@ -12,8 +13,8 @@ class FlightPresenter extends CompletePresenterStandalone {
   final TextEditingController personsController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey();
 
-  String? flightInfo;
-  bool flightInfoError = false;
+  FlightPresearchResult? flightPresearch;
+  bool flightPresearchError = false;
   DateTime? flightDate;
 
   String? flightFindingError;
@@ -36,29 +37,30 @@ class FlightPresenter extends CompletePresenterStandalone {
     flightNumberFocusNode.addListener(() {
       if (!flightNumberFocusNode.hasFocus &&
           flightDate != null &&
-          !flightInfoError &&
-          flightNumberController.text.trim().isNotEmpty) {
+          !flightPresearchError &&
+          flightPresearch != null) {
         searchFlights();
       }
     });
   }
 
   void _onFlightNumberChanged(int nonce) async {
-    String? flightInfo;
-    bool flightInfoError;
+    this.flightPresearch = null;
+    FlightPresearchResult? flightPresearch;
+    bool flightPresearchError;
     if (flightNumberController.text.trim().isEmpty) {
-      flightInfo = null;
-      flightInfoError = false;
+      flightPresearch = null;
+      flightPresearchError = false;
     } else {
       final value =
           await flightSearchRepository.presearch(flightNumberController.text);
-      flightInfo = value;
-      flightInfoError = value == null;
+      flightPresearch = value;
+      flightPresearchError = value == null;
     }
     if (_searchDebounce.shouldApplyValue(nonce)) {
-      this.flightInfo = flightInfo;
-      this.flightInfoError = flightInfoError;
-      if (flightInfo != null &&
+      this.flightPresearch = flightPresearch;
+      this.flightPresearchError = flightPresearchError;
+      if (flightPresearch != null &&
           !flightNumberFocusNode.hasFocus &&
           flightDate != null) {
         searchFlights();
@@ -75,10 +77,11 @@ class FlightPresenter extends CompletePresenterStandalone {
       lastDate: DateTime(2200),
     );
     if (date == null) return;
-    flightDate = date;
+    flightDate = DateTime.utc(date.year, date.month, date.day);
     notify();
 
-    if (!flightInfoError && flightNumberController.text.trim().isNotEmpty) {
+    if (!flightPresearchError &&
+        flightNumberController.text.trim().isNotEmpty) {
       searchFlights();
     }
   }
@@ -91,7 +94,9 @@ class FlightPresenter extends CompletePresenterStandalone {
     final nonce = _foundFlightsNonce.increase();
     try {
       final flights = await flightSearchRepository.find(
-          flightNumberController.text, flightDate!);
+        flightPresearch!.ident,
+        flightDate!,
+      );
 
       if (_foundFlightsNonce.shouldApplyValue(nonce)) {
         foundFlights = flights;

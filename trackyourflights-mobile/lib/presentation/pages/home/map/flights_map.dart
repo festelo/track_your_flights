@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
@@ -42,7 +41,7 @@ class _FlightsMapState extends State<FlightsMap> {
 
   @override
   Widget build(BuildContext context) {
-    if (Platform.isMacOS) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
       return FlutterMap(
         options: MapOptions(
           zoom: 13,

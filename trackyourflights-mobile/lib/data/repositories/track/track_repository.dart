@@ -29,17 +29,12 @@ class TrackRepositoryImpl implements TrackRepository {
   }
 
   Future<void> saveFlightTrack(Flight flight) async {
-    final kmlLink =
-        'https://flightaware.com/${flight.flightAwareLink}/google_earth';
-
-    final res = await client.get(Uri.parse(kmlLink));
-    final kml = res.body;
     await client.post(
-      uriResolver.uri('/track/save-kml'),
+      uriResolver.uri('/track/setup'),
       headers: {'content-type': 'application/json'},
       body: jsonEncode({
         'flightId': flight.id,
-        'kml': kml,
+        'permaLink': flight.flightAwareLink,
       }),
     );
   }

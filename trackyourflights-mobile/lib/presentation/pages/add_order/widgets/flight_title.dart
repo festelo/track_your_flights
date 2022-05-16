@@ -24,9 +24,9 @@ class FlightTitle extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              presenter.flightInfo == null
+              presenter.flightPresearch == null
                   ? 'Flight ${flightNumber + 1}'
-                  : 'Flight ${flightNumber + 1} (${presenter.flightInfo})',
+                  : 'Flight ${flightNumber + 1} (${presenter.flightPresearch!.description})',
               maxLines: 1,
               style: const TextStyle(fontSize: 16),
             ),

@@ -1,14 +1,17 @@
-import { Body, Controller, Get, Post, Query, Response, Request, StreamableFile } from '@nestjs/common';
-import { SaveKmlDto } from './track.dto';
+import { Body, Controller, Get, Post, Query, Response, Request, StreamableFile, BadRequestException } from '@nestjs/common';
+import { SetupDto } from './track.dto';
 import { TrackService } from './track.service';
 
 @Controller('/track')
 export class TrackController {
   constructor(private trackService: TrackService) {}
   
-  @Post('save-kml')
-  async saveKml(@Body() req: SaveKmlDto) {
-    await this.trackService.saveKMLasGeojson(req.flightId, req.kml);
+  @Post('setup')
+  async setup(@Body() req: SetupDto) {
+    if(!this.trackService.validateLink(req.permaLink)) {
+      throw new BadRequestException()
+    }
+    await this.trackService.saveGeojsonForFlight(req.flightId, req.permaLink);
   }
 
   @Get('get')

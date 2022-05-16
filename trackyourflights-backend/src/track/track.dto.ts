@@ -1,10 +1,10 @@
 
 import { IsNotEmpty, ArrayNotEmpty, ValidateNested } from 'class-validator';
 
-export class SaveKmlDto {
+export class SetupDto {
   @IsNotEmpty()
   flightId: string;
 
   @IsNotEmpty()
-  kml: string;
+  permaLink: string;
 }

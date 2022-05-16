@@ -46,7 +46,7 @@ class FlightFormState extends PresenterState<FlightForm> {
                         : null,
                   ),
                   style: TextStyle(
-                    color: presenter.flightInfoError ? Colors.red : null,
+                    color: presenter.flightPresearchError ? Colors.red : null,
                   ),
                   focusNode: presenter.flightNumberFocusNode,
                   controller: presenter.flightNumberController,

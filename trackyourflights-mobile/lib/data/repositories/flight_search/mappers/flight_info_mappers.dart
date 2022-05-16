@@ -11,13 +11,15 @@ abstract class FlightInfoMappers {
         timeZone: json['origin']?['TZ'],
         iata: json['origin']?['iata'],
         friendlyName: json['origin']?['friendlyName'],
-        friendlyLocation: json['origin']?['friendlyLocation'],
+        city: json['origin']?['city'],
+        airport: json['origin']?['airport'],
       ),
       destination: Waypoint(
         timeZone: json['destination']?['TZ'],
         iata: json['destination']?['iata'],
         friendlyName: json['destination']?['friendlyName'],
-        friendlyLocation: json['destination']?['friendlyLocation'],
+        city: json['destination']?['city'],
+        airport: json['destination']?['airport'],
       ),
       gateArrivalTimes: TimeSet(
         actual: json['gateArrivalTimes']?['actual'],

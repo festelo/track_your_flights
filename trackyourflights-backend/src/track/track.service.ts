@@ -9,15 +9,33 @@ import { createReadStream } from 'fs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserFlightEntity } from 'src/history/history.entities';
 import { Repository } from 'typeorm';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class TrackService {
   constructor(
     @InjectRepository(UserFlightEntity)
     private userFlightsRepository: Repository<UserFlightEntity>,
+    private httpService: HttpService,
   ) {}
 
-  public async saveKMLasGeojson(flightId: string, kml: string) {
+  public validateLink(permalink: string) {
+    return !!/\/live\/flight\/[\da-zA-Z]+\/history\/[\d]+\/[\d]+Z\/[a-zA-Z]+\/[a-zA-Z]+/g.test(permalink)
+  }
+
+  public async saveGeojsonForFlight(flightId: string, permaLink: string) {
+    const kml = await this.getKML(permaLink);
+    await this.saveKMLasGeojson(flightId, kml);
+  }
+
+  private async getKML(permalink: string) {
+    const kmlLink = `https://flightaware.com/${permalink}/google_earth`;
+    const kml = await lastValueFrom(this.httpService.get(kmlLink))
+    return kml.data.toString()
+  }
+
+  private async saveKMLasGeojson(flightId: string, kml: string) {
     const parsedKml = new DOMParser().parseFromString(kml);
     const geojson = tj.kml(parsedKml);
     await this.saveGeojson(flightId, geojson);

@@ -4,7 +4,7 @@ import 'package:trackyourflights/data/http/clients/http_client.dart';
 import 'package:trackyourflights/data/http/clients/token_client.dart';
 import 'package:trackyourflights/data/http/token_storage.dart';
 import 'package:trackyourflights/data/http/uri_resolver.dart';
-import 'package:trackyourflights/data/repositories/flight_search/fligt_search_repository.dart';
+import 'package:trackyourflights/data/repositories/flight_search/flight_search_repository.dart';
 import 'package:trackyourflights/data/repositories/history/history_repository.dart';
 import 'package:trackyourflights/data/repositories/session/session_repository.dart';
 import 'package:trackyourflights/data/repositories/session/token_refresh_handler.dart';
@@ -17,8 +17,9 @@ import 'package:uuid/uuid.dart';
 
 final tokenStorage = TokenStorage();
 final uriResolver = UriResolver(
-  scheme: 'http',
-  baseUrl: '192.168.1.101:3000',
+  scheme: 'https',
+  endpoint: 'festelo.tk',
+  path: 'api',
 );
 
 final client = HttpClient(
@@ -41,7 +42,10 @@ final SessionRepository sessionRepository = SessionRepositoryImpl(
 );
 
 final FlightSearchRepository flightSearchRepository =
-    FlightSearchRepositoryImpl();
+    FlightSearchRepositoryImpl(
+  uriResolver: uriResolver,
+  client: client,
+);
 
 final HistoryRepository historyRepository = HistoryRepositoryImpl(
   uriResolver: uriResolver,

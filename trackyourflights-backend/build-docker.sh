@@ -1,0 +1,1 @@
+docker buildx build --push --tag festelo/trackyourflights-backend --platform=linux/arm64,linux/amd64 .

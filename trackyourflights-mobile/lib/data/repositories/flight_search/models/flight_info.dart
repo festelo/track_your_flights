@@ -56,11 +56,13 @@ class Waypoint {
     required this.timeZone,
     required this.iata,
     required this.friendlyName,
-    required this.friendlyLocation,
+    required this.airport,
+    required this.city,
   });
 
   final String? timeZone;
   final String? iata;
   final String? friendlyName;
-  final String? friendlyLocation;
+  final String? airport;
+  final String? city;
 }

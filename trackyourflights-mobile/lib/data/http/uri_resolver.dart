@@ -1,11 +1,13 @@
 class UriResolver {
   UriResolver({
     required this.scheme,
-    required this.baseUrl,
+    required this.endpoint,
+    this.path,
   });
 
   final String scheme;
-  final String baseUrl;
+  final String endpoint;
+  final String? path;
 
   Uri uri(String path, [List<QueryParam>? queryParams]) {
     queryParams ??= [];
@@ -15,10 +17,13 @@ class UriResolver {
       query +=
           '${Uri.encodeComponent(p.key)}=${Uri.encodeComponent(p.value!)}&';
     }
+    if (this.path != null) {
+      path = '${this.path}$path';
+    }
     if (scheme == 'https') {
-      return Uri.parse(Uri.https(baseUrl, path).toString() + query);
+      return Uri.parse(Uri.https(endpoint, path).toString() + query);
     } else {
-      return Uri.parse(Uri.http(baseUrl, path).toString() + query);
+      return Uri.parse(Uri.http(endpoint, path).toString() + query);
     }
   }
 }

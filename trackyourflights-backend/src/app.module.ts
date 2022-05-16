@@ -11,6 +11,7 @@ import { HistoryModule } from './history/history.module';
 import { TrackModule } from './track/track.module';
 import { RolesModule } from './role/roles.module';
 import { ConfigurationModule } from './configuration/configuration.module';
+import { FlightsModule } from './flights/flights.module';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { ConfigurationModule } from './configuration/configuration.module';
       synchronize: true,
       autoLoadEntities: true,
     }), 
-    HistoryModule,
+    HistoryModule, FlightsModule,
   ],
 })
 export class AppModule {}
