@@ -1,35 +1,55 @@
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
-import { Type } from 'class-transformer';
-import { IsNotEmpty, ArrayNotEmpty, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsNumber } from "class-validator";
+import { Flight } from "src/flights/flights.entities";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity()
-export class HistoryEntity {
-  constructor(entity: Required<HistoryEntity>) {
-     Object.assign(this, entity);
-  }
-
-  @PrimaryGeneratedColumn()
-  id?: string;
-
-  @Column('simple-json')
-  json: any;
+export class Price {
+  @Column()
+  @IsNumber()
+  amount: number;
 
   @Column()
-  userId: string;
+  @IsNotEmpty()
+  currency: string;
 }
 
 @Entity()
-export class UserFlightEntity {
-  constructor(entity: Required<UserFlightEntity>) {
-     Object.assign(this, entity);
+export class Order {
+  constructor(entity: Required<Order>) {
+      Object.assign(this, entity);
   }
 
   @PrimaryGeneratedColumn()
   id?: string;
 
   @Column()
-  flightId: string;
+  userId: string;
+
+  @Column(() => Price)
+  price: Price;
 
   @Column()
-  userId: string;
+  orderedAt: Date;
+
+  @OneToMany(() => OrderFlight, (flight) => flight.order)
+  flights: Array<OrderFlight>;
+}
+
+@Entity()
+export class OrderFlight {
+  constructor(entity: Required<OrderFlight>) {
+     Object.assign(this, entity);
+  }
+
+  @PrimaryGeneratedColumn()
+  id?: string;
+
+  @ManyToOne(() => Order, (order) => order.flights)
+  order: Order;
+
+  @OneToOne(() => Flight)
+  @JoinColumn()
+  flight: Flight;
+
+  @Column()
+  personsCount: number;
 }

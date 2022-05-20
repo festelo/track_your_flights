@@ -1,21 +1,28 @@
 
 import { Type } from 'class-transformer';
-import { IsNotEmpty, ArrayNotEmpty, ValidateNested } from 'class-validator';
+import { ArrayNotEmpty, IsDate, IsNotEmpty, IsString, Min, ValidateNested } from 'class-validator';
+import { Price } from './history.entities';
 
 export class OrderDto {
-  @IsNotEmpty()
-  id: string;
-
-  @ArrayNotEmpty()
+  @Type(() => Price)
   @ValidateNested()
-  @Type(() => FlightDto)
-  flights: FlightDto[];
+  @IsNotEmpty()
+  price: Price;
 
-  [x: string | number | symbol]: unknown;
+  @IsDate()
+  orderedAt: Date;
+  
+  @ArrayNotEmpty()
+  @Type(() => OrderFlightDto)
+  @ValidateNested()
+  flights: OrderFlightDto[];
 }
 
-export class FlightDto {
+export class OrderFlightDto {
   @IsNotEmpty()
-  id: string;
-  [x: string | number | symbol]: unknown;
+  @IsString()
+  flightId: string
+  
+  @Min(1)
+  personsCount: number;
 }

@@ -1,29 +1,32 @@
 import { Injectable } from '@nestjs/common';
-import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
-import { HistoryEntity, UserFlightEntity } from './history.entities';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Order, OrderFlight } from './history.entities';
 
 @Injectable()
 export class HistoryService {
   constructor(
-    @InjectRepository(HistoryEntity)
-    private historyRepository: Repository<HistoryEntity>,
-    @InjectRepository(UserFlightEntity)
-    private userFlightsRepository: Repository<UserFlightEntity>,
+    @InjectRepository(Order)
+    private ordersRepository: Repository<Order>,
+    @InjectRepository(OrderFlight)
+    private flightsRepository: Repository<OrderFlight>,
   ) {}
 
-  async add(entity: HistoryEntity, userId: string, flightIds: string[]) {
-    await this.historyRepository.save(entity);
-    await this.userFlightsRepository.save(
-      flightIds.map((flightId) => new UserFlightEntity({
-        id: undefined,
-        flightId,
-        userId,
-      }))
-    )
+  async add(entity: Order) {
+    await this.ordersRepository.save(entity);
+    for (const flight of entity.flights) {
+      await this.flightsRepository.save(flight);
+    }
   }
 
   async getAll(userId: string) {
-    return await this.historyRepository.findBy({ userId })
+    return await this.ordersRepository.find({ 
+      where: { userId } ,
+      relations: {
+        flights: {
+          flight: true,
+        },
+      }
+    })
   }
 }

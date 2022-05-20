@@ -27,7 +27,8 @@ import { FlightsModule } from './flights/flights.module';
       synchronize: true,
       autoLoadEntities: true,
     }), 
-    HistoryModule, FlightsModule,
+    HistoryModule, 
+    FlightsModule,
   ],
 })
 export class AppModule {}

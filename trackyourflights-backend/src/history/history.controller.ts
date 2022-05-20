@@ -1,23 +1,35 @@
 import { Body, Controller, Get, Post, Request } from '@nestjs/common';
 import { HistoryService } from './history.service';
-import { HistoryEntity } from './history.entities';
 import { OrderDto } from './history.dto';
+import { Order, OrderFlight } from './history.entities';
+import { Flight } from 'src/flights/flights.entities';
 
 @Controller('/history')
 export class HistoryController {
   constructor(private historyService: HistoryService) {}
   
   @Post('add')
-  async add(@Request() req, @Body() order: OrderDto) {
-    return this.historyService.add(
-      new HistoryEntity({
-          id: undefined,
-          json: order,
-          userId: req.user.id,
-      }), 
-      req.user.id, 
-      order.flights.map((e) => e.id),
-    );
+  async add(@Request() req, @Body() body: OrderDto) {
+    const order = new Order({
+      id: null,
+      orderedAt: body.orderedAt,
+      price: body.price,
+      userId: req.user.id,
+      flights: null,
+    });
+
+    const flights = body.flights.map((e) => new OrderFlight({
+      id: null,
+      flight: new Flight({
+        id: e.flightId,
+      }),
+      order: order,
+      personsCount: e.personsCount
+    }));
+
+    order.flights = flights;
+
+    return this.historyService.add(order);
   }
 
   @Get('get')

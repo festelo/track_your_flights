@@ -7,7 +7,7 @@ import * as path from "path"
 import { DOMParser } from 'xmldom';
 import { createReadStream } from 'fs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserFlightEntity } from 'src/history/history.entities';
+import { OrderFlight } from 'src/history/history.entities';
 import { Repository } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
@@ -15,8 +15,8 @@ import { lastValueFrom } from 'rxjs';
 @Injectable()
 export class TrackService {
   constructor(
-    @InjectRepository(UserFlightEntity)
-    private userFlightsRepository: Repository<UserFlightEntity>,
+    @InjectRepository(OrderFlight)
+    private userFlightsRepository: Repository<OrderFlight>,
     private httpService: HttpService,
   ) {}
 
@@ -60,10 +60,12 @@ export class TrackService {
 
   public async getUsersGeojsons(userId: string)  { 
     const flightEntities = await this.userFlightsRepository.findBy({
-      userId: userId,
+      order: {
+        userId: userId,
+      }
     })
     return geojsonMerge.mergeFeatureCollectionStream(
-      flightEntities.map((e) => this.resolvePath(e.flightId))
+      flightEntities.map((e) => this.resolvePath(e.flight.id))
     ) 
   }
 }

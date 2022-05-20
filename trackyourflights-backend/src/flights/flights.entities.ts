@@ -1,31 +1,101 @@
-export interface FlightInfo {
-  permaLink: string;
-  cancelled: boolean;
-  flightStatus: string;
-  origin: Waypoint;
-  destination: Waypoint;
-  gateArrivalTimes: TimeSet;
-  gateDepartureTimes: TimeSet;
-  landingTimes: TimeSet;
-  takeoffTimes: TimeSet;
-  aircraft: JetInfo;
-}
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-export interface Waypoint {
+export class Waypoint {
+  @Column({
+    nullable: true,
+  })
   TZ: string;
+  @Column({
+    nullable: true,
+  })
   iata: string;
+  @Column({
+    nullable: true,
+  })
   airport: string;
+  @Column({
+    nullable: true,
+  })
   city: string;
 }
 
-export interface TimeSet {
-  actual: number;
-  estimated: number;
-  scheduled: number;
+export class TimeSet {
+  @Column({
+    nullable: true,
+  })
+  actual?: number;
+
+  @Column({
+    nullable: true,
+  })
+  estimated?: number;
+
+  @Column({
+    nullable: true,
+  })
+  scheduled?: number;
 }
 
-export interface JetInfo {
-  friendlyType: string;
-  typeFull: string;
-  type: string;
+export class JetInfo {
+  @Column({
+    nullable: true,
+  })
+  friendlyType?: string;
+
+  @Column({
+    nullable: true,
+  })
+  typeFull?: string;
+
+  @Column({
+    nullable: true,
+  })
+  type?: string;
+}
+@Entity()
+export class Flight {
+  constructor(entity: Required<Flight> |  {id: string}) {
+     Object.assign(this, entity);
+  }
+
+  @PrimaryGeneratedColumn()
+  id?: string;
+
+  @Column()
+  ident: string;
+
+  @Column()
+  indexingDate: Date;
+
+  @Column({
+    nullable: true,
+  })
+  flightAwarePermaLink: string;
+  
+  @Column()
+  cancelled: boolean;
+  
+  @Column()
+  flightStatus: string;
+  
+  @Column(() => Waypoint)
+  origin: Waypoint;
+
+  @Column(() => Waypoint)
+  destination: Waypoint;
+
+  @Column(() => TimeSet)
+  gateArrivalTimes: TimeSet;
+
+  @Column(() => TimeSet)
+  gateDepartureTimes: TimeSet;
+
+  @Column(() => TimeSet)
+  landingTimes: TimeSet;
+
+  @Column(() => TimeSet)
+  takeoffTimes: TimeSet;
+
+  @Column(() => JetInfo)
+  aircraft: JetInfo;
 }
