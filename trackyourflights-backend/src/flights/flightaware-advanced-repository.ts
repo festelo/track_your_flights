@@ -4,6 +4,8 @@ import { lastValueFrom } from 'rxjs';
 import { Flight } from './flights.entities';
 import { AdvancedResponse, FlightRoot } from './flights-advanced.models';
 import * as assert from 'assert';
+import { dateFromEpoch } from 'src/utils';
+import { getIdentFromHistoryLink, getPathFromHistoryLink } from './flightaware-uri-utils';
 
 type GetByParams = {
   historyUrl: string
@@ -39,21 +41,6 @@ export class FlightAwareAdvancedRepository {
   constructor(
     private httpService: HttpService,
   ) {}
-
-  private getIdentPart(historyLink: string) {
-    const match = historyLink.match(/\/live\/flight\/([\da-zA-Z]+)\/?/g);
-    if (match == null) return ''
-    const pathPart = match[1] ?? '';
-    return pathPart;
-  }
-
-  private getPathPart(historyLink: string) {
-    const matches = historyLink.matchAll(/\/live\/flight\/[\da-zA-Z]+\/history\/[\d]+\/[\d]+Z([\/0-9a-zA-Z]+)/g);
-    const match = matches.next().value
-    if (match == null) return ''
-    const pathPart = match[1] ?? '';
-    return pathPart;
-  }
 
   private async getLogPollToken(historyUrl: string) {
     const res = await lastValueFrom(this.httpService.get(historyUrl, {
@@ -105,7 +92,7 @@ export class FlightAwareAdvancedRepository {
     if ('ident' in data.routeInfo  && data.routeInfo.ident) {
       ident = data.routeInfo.ident;
     } else if ('historyUrlForSomeFlightOfThisRoute' in data.routeInfo) {
-      ident = this.getIdentPart(data.routeInfo.historyUrlForSomeFlightOfThisRoute);
+      ident = getIdentFromHistoryLink(data.routeInfo.historyUrlForSomeFlightOfThisRoute);
     }
 
     if ('destItea' in data.routeInfo && 'originItea' in data.routeInfo && 
@@ -113,7 +100,8 @@ export class FlightAwareAdvancedRepository {
       pathPart = `/${data.routeInfo.originItea}/${data.routeInfo.destItea}`
     } else if ('historyUrlForSomeFlightOfThisRoute' in data.routeInfo && 
       data.routeInfo.historyUrlForSomeFlightOfThisRoute) {
-      pathPart = this.getPathPart(data.routeInfo.historyUrlForSomeFlightOfThisRoute);
+      const path = getPathFromHistoryLink(data.routeInfo.historyUrlForSomeFlightOfThisRoute);
+      pathPart = '/' + path.origin + '/' + path.dest;
     }
 
     const encodedDate = encodeURIComponent(data.dateTime.utc().format('YYYYMMDD'))
@@ -154,22 +142,38 @@ export class FlightAwareAdvancedRepository {
           TZ: f.destination.TZ,
           airport: f.destination.friendlyName,
           city: f.destination.friendlyLocation,
-          iata: f.destination.iata,
+          iata: f.destination.icao,
         },
         origin: {
           TZ: f.origin.TZ,
           airport: f.origin.friendlyName,
           city: f.origin.friendlyLocation,
-          iata: f.origin.iata,
+          iata: f.origin.icao,
         },
         flightAwarePermaLink: f.links.permanent,
         flightStatus: f.flightStatus,
-        gateArrivalTimes: f.gateArrivalTimes,
-        gateDepartureTimes: f.gateDepartureTimes,
-        landingTimes: f.landingTimes,
-        takeoffTimes: f.takeoffTimes,
+        gateArrivalTimes: {
+          actual: dateFromEpoch(f.gateArrivalTimes.actual),
+          estimated: dateFromEpoch(f.gateArrivalTimes.estimated),
+          scheduled: dateFromEpoch(f.gateArrivalTimes.scheduled),
+        },
+        gateDepartureTimes: {
+          actual: dateFromEpoch(f.gateDepartureTimes.actual),
+          estimated: dateFromEpoch(f.gateDepartureTimes.estimated),
+          scheduled: dateFromEpoch(f.gateDepartureTimes.scheduled),
+        },
+        landingTimes: {
+          actual: dateFromEpoch(f.landingTimes.actual),
+          estimated: dateFromEpoch(f.landingTimes.estimated),
+          scheduled: dateFromEpoch(f.landingTimes.scheduled),
+        },
+        takeoffTimes: {
+          actual: dateFromEpoch(f.takeoffTimes.actual),
+          estimated: dateFromEpoch(f.takeoffTimes.estimated),
+          scheduled: dateFromEpoch(f.takeoffTimes.scheduled),
+        },
         ident: f.displayIdent,
-        indexingDate: new Date(f.takeoffTimes.scheduled * 1000) || new Date(f.takeoffTimes.estimated * 1000),
+        indexingDate: dateFromEpoch(f.takeoffTimes.scheduled) || dateFromEpoch(f.takeoffTimes.estimated),
       }));
   }
 }

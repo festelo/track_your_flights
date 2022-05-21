@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:trackyourflights/presentation/disposables/disposable_stream.dart';
+import 'package:trackyourflights/presentation/event/app_notifier.dart';
 import 'package:trackyourflights/presentation/pages/add_order/add_order_dialog.dart';
 import 'package:trackyourflights/presentation/pages/add_order/add_order_page.dart';
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
@@ -17,6 +20,10 @@ class OrdersPresenter extends CompletePresenter<OrdersState> {
   void initState() {
     super.initState();
     refreshOrders();
+    appNotifier.events
+        .whereType<OrderAddedEvent>()
+        .listen((e) => refreshOrders())
+        .disposeWith(this);
   }
 
   Future<void> refreshOrders() async {
@@ -38,6 +45,5 @@ class OrdersPresenter extends CompletePresenter<OrdersState> {
         ),
       );
     }
-    await refreshOrders();
   }
 }

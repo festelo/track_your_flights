@@ -23,8 +23,8 @@ class TrackRepositoryImpl implements TrackRepository {
 
   @override
   Future<void> saveOrderTracks(Order order) async {
-    for (final flight in order.flights) {
-      await saveFlightTrack(flight);
+    for (final orderFlight in order.flights) {
+      await saveFlightTrack(orderFlight.flight);
     }
   }
 
@@ -34,7 +34,7 @@ class TrackRepositoryImpl implements TrackRepository {
       headers: {'content-type': 'application/json'},
       body: jsonEncode({
         'flightId': flight.id,
-        'permaLink': flight.flightAwareLink,
+        'permaLink': flight.flightAwarePermaLink,
       }),
     );
   }

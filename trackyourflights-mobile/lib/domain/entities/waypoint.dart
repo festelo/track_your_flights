@@ -1,12 +1,11 @@
-import 'package:trackyourflights/domain/entities/airport_info.dart';
-import 'package:trackyourflights/domain/entities/route_date_time.dart';
-
 class Waypoint {
   const Waypoint({
     required this.airport,
-    required this.dateTime,
+    required this.city,
+    required this.iata,
   });
 
-  final AirportInfo airport;
-  final RouteDateTime dateTime;
+  final String city;
+  final String airport;
+  final String? iata;
 }

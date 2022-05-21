@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
 import { FlightApiDto } from './flights.models';
 import { Flight } from './flights.entities';
+import { dateFromEpoch } from 'src/utils';
+import { getPathFromHistoryLink } from './flightaware-uri-utils';
 
 @Injectable()
 export class FlightAwareRepository {
@@ -54,6 +56,7 @@ export class FlightAwareRepository {
 
     const mappedFlights = flights.map((e) => {
       const indexingDate = new Date(e.filed_departuretime.epoch * 1000);
+      const path = getPathFromHistoryLink(e.flight_history_link)
       return new Flight({
         id: null,
         flightAwarePermaLink: e.flight_history_link,
@@ -66,37 +69,37 @@ export class FlightAwareRepository {
           type: e.aircrafttype,
         },
         destination: {
-          TZ: e.actualarrivaltime.tz,
+          TZ: e.actualarrivaltime.tz ?? e.filed_arrivaltime.tz ?? e.estimatedarrivaltime.tz,
           airport: e.display_destination.airport_name,
           city: e.display_destination.city,
-          iata: e.display_destination.alternate_ident,
+          iata: path.dest,
         },
         origin: {
-          TZ: e.actualdeparturetime.tz,
+          TZ: e.actualdeparturetime.tz ?? e.filed_departuretime.tz ?? e.estimateddeparturetime.tz,
           airport: e.display_origin.airport_name,
           city: e.display_origin.city,
-          iata: e.display_origin.alternate_ident,
+          iata: path.origin,
         },
         flightStatus: e.status,
         takeoffTimes: {
-          scheduled: e.filed_departuretime?.epoch,
-          estimated: e.estimateddeparturetime?.epoch,
-          actual: e.actualdeparturetime?.epoch,
+          scheduled: dateFromEpoch(e.filed_departuretime?.epoch),
+          estimated: dateFromEpoch(e.estimateddeparturetime?.epoch),
+          actual: dateFromEpoch(e.actualdeparturetime?.epoch),
         },
         landingTimes: {
-          scheduled: e.filed_arrivaltime?.epoch,
-          estimated: e.estimatedarrivaltime?.epoch,
-          actual: e.actualarrivaltime?.epoch,
+          scheduled: dateFromEpoch(e.filed_arrivaltime?.epoch),
+          estimated: dateFromEpoch(e.estimatedarrivaltime?.epoch),
+          actual: dateFromEpoch(e.actualarrivaltime?.epoch),
         },
         gateDepartureTimes: {
-          scheduled: e.sch_block_out?.epoch,
-          estimated: e.est_block_out?.epoch,
-          actual: e.act_block_out?.epoch,
+          scheduled: dateFromEpoch(e.sch_block_out?.epoch),
+          estimated: dateFromEpoch(e.est_block_out?.epoch),
+          actual: dateFromEpoch(e.act_block_out?.epoch),
         },
         gateArrivalTimes: {
-          scheduled: e.sch_block_in?.epoch,
-          estimated: e.est_block_in?.epoch,
-          actual: e.act_block_in?.epoch,
+          scheduled: dateFromEpoch(e.sch_block_in?.epoch),
+          estimated: dateFromEpoch(e.est_block_in?.epoch),
+          actual: dateFromEpoch(e.act_block_in?.epoch),
         },
       }
     )});

@@ -16,11 +16,20 @@ import 'package:trackyourflights/domain/repositories/track_repository.dart';
 import 'package:uuid/uuid.dart';
 
 final tokenStorage = TokenStorage();
-final uriResolver = UriResolver(
-  scheme: 'https',
-  endpoint: 'festelo.tk',
+
+final debugUriResolver = UriResolver(
+  scheme: 'http',
+  endpoint: '192.168.1.101:3000',
   path: 'api',
 );
+
+final prodUriResolver = UriResolver(
+  scheme: 'https',
+  endpoint: 'flights.festelo.tk',
+  path: 'api',
+);
+
+UriResolver get uriResolver => debugUriResolver;
 
 final client = HttpClient(
   Client(),

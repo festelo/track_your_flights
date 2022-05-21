@@ -11,6 +11,6 @@ class Order {
 
   final String id;
   final Price price;
-  final List<Flight> flights;
+  final List<OrderFlight> flights;
   final DateTime orderedAt;
 }

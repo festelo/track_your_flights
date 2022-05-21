@@ -68,7 +68,7 @@ class AddOrderDialog extends ConsumerWidget {
       child: Center(
         child: Container(
           width: 600,
-          height: 400,
+          height: 490,
           margin: const EdgeInsets.symmetric(vertical: 60),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),

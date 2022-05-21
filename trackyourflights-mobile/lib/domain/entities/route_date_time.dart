@@ -1,9 +1,11 @@
 class RouteDateTime {
   const RouteDateTime({
     required this.actual,
-    required this.planned,
+    required this.scheduled,
   });
 
   final DateTime? actual;
-  final DateTime? planned;
+  final DateTime? scheduled;
+
+  DateTime? get display => actual ?? scheduled;
 }

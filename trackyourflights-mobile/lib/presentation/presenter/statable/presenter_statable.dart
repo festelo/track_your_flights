@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:trackyourflights/presentation/presenter/expansions/context_expansion.dart';
+import 'package:trackyourflights/presentation/presenter/expansions/disposable_expansion.dart';
 
 import '../base_presenter.dart';
 import '../expansions/error_expansion.dart';
@@ -55,7 +56,8 @@ abstract class CompletePresenter<TStore> extends Presenter<TStore>
         TextEditingPresenterExpansion,
         ErrorPresenterExpansion,
         MessagePresenterExpansion,
-        ContextPresenterExpansion
+        ContextPresenterExpansion,
+        DisposableExpansion
     implements BaseCompletePresenter {
   CompletePresenter(TStore state) : super(state);
 }

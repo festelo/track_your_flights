@@ -46,7 +46,9 @@ class FlightFormState extends PresenterState<FlightForm> {
                         : null,
                   ),
                   style: TextStyle(
-                    color: presenter.flightPresearchError ? Colors.red : null,
+                    color: presenter.flightPresearch.error != null
+                        ? Colors.red
+                        : null,
                   ),
                   focusNode: presenter.flightNumberFocusNode,
                   controller: presenter.flightNumberController,
@@ -82,6 +84,85 @@ class FlightFormState extends PresenterState<FlightForm> {
                 autovalidateMode: AutovalidateMode.onUserInteraction,
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: AnimatedBuilder(
+                animation: presenter.departureTimeFocusNode,
+                builder: (ctx, _) => TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Scheduled Departure Time',
+                    hintText: presenter.selectedFlight?.takeoffTimes.scheduled
+                            ?.formattedTime(context) ??
+                        '00:00',
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    suffixIcon: presenter.departureTimeFocusNode.hasFocus &&
+                            presenter.flightDate != null &&
+                            presenter.flightPresearch.value != null
+                        ? InkWell(
+                            child: const Icon(Icons.done),
+                            onTap: () => FocusScope.of(context).unfocus(),
+                          )
+                        : null,
+                  ),
+                  focusNode: presenter.departureTimeFocusNode,
+                  controller: presenter.departureTimeController,
+                  validator: (s) {
+                    s = s?.trim();
+                    if (s == null || s.isEmpty) return null;
+                    return DateTimeParser.time(context, s) == null
+                        ? 'HH:MM'
+                        : null;
+                  },
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: AnimatedBuilder(
+                animation: presenter.departureAirportFocusNode,
+                builder: (ctx, _) => TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Departure Airport',
+                    hintText: presenter.selectedFlight?.origin.iata ?? 'DDDD',
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    suffixIcon: presenter.departureAirportFocusNode.hasFocus &&
+                            presenter.flightDate != null &&
+                            presenter.flightPresearch.value != null
+                        ? InkWell(
+                            child: const Icon(Icons.done),
+                            onTap: () => FocusScope.of(context).unfocus(),
+                          )
+                        : null,
+                  ),
+                  focusNode: presenter.departureAirportFocusNode,
+                  controller: presenter.departureAirportController,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: AnimatedBuilder(
+                animation: presenter.arrivalAirportFocusNode,
+                builder: (ctx, _) => TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Arrival Airport',
+                    hintText:
+                        presenter.selectedFlight?.destination.iata ?? 'AAAA',
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    suffixIcon: presenter.arrivalAirportFocusNode.hasFocus &&
+                            presenter.flightDate != null &&
+                            presenter.flightPresearch.value != null
+                        ? InkWell(
+                            child: const Icon(Icons.done),
+                            onTap: () => FocusScope.of(context).unfocus(),
+                          )
+                        : null,
+                  ),
+                  focusNode: presenter.arrivalAirportFocusNode,
+                  controller: presenter.arrivalAirportController,
+                ),
+              ),
+            ),
             if (presenter.flightLoading) ...[
               const SizedBox(height: 12),
               const Padding(
@@ -94,24 +175,24 @@ class FlightFormState extends PresenterState<FlightForm> {
                   ),
                 ),
               ),
-            ] else if (presenter.flightFindingError != null) ...[
+            ] else if (presenter.foundFlights.error != null) ...[
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  presenter.flightFindingError!,
+                  presenter.foundFlights.error!,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
               ),
-            ] else if (presenter.foundFlights.isNotEmpty) ...[
+            ] else if (presenter.foundFlights.value?.isNotEmpty ?? false) ...[
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  'Seems like this is a flight from ${presenter.selectedFlight.from.airport.city} to ${presenter.selectedFlight.to.airport.city}.\n\nTake off was at ${presenter.foundFlights[0].from.dateTime.actual!.formattedTime(context)} and landing at ${presenter.foundFlights[0].to.dateTime.actual!.formattedTime(context)}\nAirplane - ${presenter.foundFlights[0].airplane.name}',
+                  'Seems like this is a flight from ${presenter.selectedFlight!.origin.city} to ${presenter.selectedFlight!.destination.city}.\n\nTake off was at ${presenter.foundFlights.value![0].takeoffTimes.actual?.formattedTime(context)} and landing at ${presenter.foundFlights.value![0].landingTimes.actual?.formattedTime(context)}\nAirplane - ${presenter.foundFlights.value![0].aircraft.name}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,

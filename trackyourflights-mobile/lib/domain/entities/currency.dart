@@ -15,6 +15,6 @@ class Currency {
   static const Currency eur = Currency(symbol: '€', name: 'EUR', code: 'eur');
   static const Currency rub = Currency(symbol: '₽', name: 'RUB', code: 'rur');
 
-  static Currency? byCode(String name) =>
-      const [usd, eur, rub].firstWhereOrNull((e) => e.code == name);
+  static Currency? byCode(String name) => const [usd, eur, rub]
+      .firstWhereOrNull((e) => e.code.toUpperCase() == name.toUpperCase());
 }

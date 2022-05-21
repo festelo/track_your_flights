@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart';
 import 'package:trackyourflights/data/http/uri_resolver.dart';
+import 'package:trackyourflights/data/repositories/history/dto/add_order_request.dart';
 import 'package:trackyourflights/data/repositories/history/mappers/order_mappers.dart';
 import 'package:trackyourflights/domain/entities/order.dart';
 import 'package:trackyourflights/domain/repositories/history_repository.dart';
@@ -22,7 +23,7 @@ class HistoryRepositoryImpl implements HistoryRepository {
     );
     final historyList = jsonDecode(res.body) as List;
     return historyList
-        .map((e) => Map<String, dynamic>.from(e['json'] as Map))
+        .map((e) => Map<String, dynamic>.from(e as Map))
         .map(OrderMappers.orderFromMap)
         .toList();
   }
@@ -32,7 +33,23 @@ class HistoryRepositoryImpl implements HistoryRepository {
     await client.post(
       uriResolver.uri('/history/add'),
       headers: {'content-type': 'application/json'},
-      body: jsonEncode(OrderMappers.orderToMap(order)),
+      body: jsonEncode(
+        AddOrderRequest(
+          price: PriceDto(
+            amount: order.price.amount,
+            currency: order.price.currency.name,
+          ),
+          orderedAt: order.orderedAt,
+          flights: order.flights
+              .map(
+                (e) => AddOrderFlightDto(
+                  flightId: e.flight.id,
+                  personsCount: e.personsCount,
+                ),
+              )
+              .toList(),
+        ).toMap(),
+      ),
     );
   }
 }

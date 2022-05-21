@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trackyourflights/domain/entities/currency.dart';
 import 'package:trackyourflights/domain/entities/order.dart';
 import 'package:trackyourflights/domain/entities/price.dart';
+import 'package:trackyourflights/presentation/event/app_notifier.dart';
 import 'package:trackyourflights/presentation/pages/add_order/presenters/flight_presenter.dart';
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
 import 'package:trackyourflights/presentation/widgets/primary_button.dart';
@@ -80,16 +81,16 @@ class AddOrderPresenter extends CompletePresenterStandalone {
   Future<void> save() async {
     notify(() => loading = true);
     try {
+      String? error;
       if (!formKey.currentState!.validate()) {
-        buttonKey.currentState?.addError('Check your fields');
-        return;
+        error = 'Check your fields';
       }
       for (final flightPresenter in flightPresenters) {
-        final error = flightPresenter.validate();
-        if (error != null) {
-          buttonKey.currentState?.addError(error);
-          return;
-        }
+        error = flightPresenter.validate();
+      }
+      if (error != null) {
+        buttonKey.currentState?.addError(error);
+        return;
       }
       final flights = flightPresenters.map((e) => e.flight).toList();
       final order = Order(
@@ -103,6 +104,7 @@ class AddOrderPresenter extends CompletePresenterStandalone {
       );
       await trackRepository.saveOrderTracks(order);
       await historyRepository.saveOrder(order);
+      appNotifier.push(OrderAddedEvent());
       if (context != null) {
         Navigator.of(context!).pop();
       }

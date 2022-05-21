@@ -6,10 +6,10 @@ import 'package:trackyourflights/presentation/date_formats.dart';
 class FlightTile extends StatelessWidget {
   const FlightTile({
     Key? key,
-    required this.flight,
+    required this.orderFlight,
   }) : super(key: key);
 
-  final Flight flight;
+  final OrderFlight orderFlight;
 
   @override
   Widget build(BuildContext context) {
@@ -26,14 +26,15 @@ class FlightTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        flight.from.airport.city,
+                        orderFlight.flight.origin.city,
                         maxLines: 2,
                         style: const TextStyle(
                           fontSize: 20,
                         ),
                       ),
                       Text(
-                        flight.from.dateTime.actual?.formattedTime(context) ??
+                        orderFlight.flight.takeoffTimes.display
+                                ?.formattedTime(context) ??
                             '-',
                       ),
                     ],
@@ -46,14 +47,16 @@ class FlightTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      flight.to.airport.city,
+                      orderFlight.flight.destination.city,
                       maxLines: 2,
                       style: const TextStyle(
                         fontSize: 20,
                       ),
                     ),
                     Text(
-                      flight.to.dateTime.actual?.formattedTime(context) ?? '-',
+                      orderFlight.flight.landingTimes.display
+                              ?.formattedTime(context) ??
+                          '-',
                     ),
                   ],
                 ),
@@ -72,7 +75,7 @@ class FlightTile extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    flight.personsCount.toString(),
+                    orderFlight.personsCount.toString(),
                     style: const TextStyle(
                       fontSize: 14,
                     ),
@@ -86,7 +89,7 @@ class FlightTile extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    flight.airplane.shortName,
+                    orderFlight.flight.aircraft.shortName,
                     style: const TextStyle(
                       fontSize: 14,
                     ),
@@ -99,15 +102,17 @@ class FlightTile extends StatelessWidget {
                     size: 14,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    flight.to.dateTime.actual!
-                        .difference(flight.from.dateTime.actual!)
-                        .inHours
-                        .toString(),
-                    style: const TextStyle(
-                      fontSize: 14,
+                  if (orderFlight.flight.landingTimes.display != null &&
+                      orderFlight.flight.takeoffTimes.display != null)
+                    Text(
+                      orderFlight.flight.landingTimes.display!
+                          .difference(orderFlight.flight.takeoffTimes.display!)
+                          .inHours
+                          .toString(),
+                      style: const TextStyle(
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
                 ],
               ],
             ),

@@ -23,17 +23,17 @@ export class TimeSet {
   @Column({
     nullable: true,
   })
-  actual?: number;
+  actual?: Date;
 
   @Column({
     nullable: true,
   })
-  estimated?: number;
+  estimated?: Date;
 
   @Column({
     nullable: true,
   })
-  scheduled?: number;
+  scheduled?: Date;
 }
 
 export class JetInfo {

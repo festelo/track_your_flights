@@ -10,7 +10,7 @@ class Debounce {
 
   Timer? _debounce;
 
-  void exec(void Function(int) fun) {
+  void exec(void Function(int nonce) fun) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(duration, () {
       fun(_nonce.increase());

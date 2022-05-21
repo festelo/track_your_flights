@@ -1,5 +1,5 @@
-class Airplane {
-  const Airplane({
+class Aircraft {
+  const Aircraft({
     required this.name,
     required this.shortName,
   });

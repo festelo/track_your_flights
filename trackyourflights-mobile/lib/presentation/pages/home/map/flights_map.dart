@@ -2,6 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:trackyourflights/presentation/disposables/disposable_state.dart';
+import 'package:trackyourflights/presentation/disposables/disposable_stream.dart';
+import 'package:trackyourflights/presentation/event/app_notifier.dart';
 import 'package:trackyourflights/repositories.dart';
 
 class FlightsMap extends StatefulWidget {
@@ -11,32 +15,54 @@ class FlightsMap extends StatefulWidget {
   State<FlightsMap> createState() => _FlightsMapState();
 }
 
-class _FlightsMapState extends State<FlightsMap> {
+class _FlightsMapState extends State<FlightsMap> with DisposableState {
   MapboxMapController? _mapController;
 
   @override
   void initState() {
     super.initState();
+    appNotifier.events
+        .whereType<OrderAddedEvent>()
+        .listen((e) => refreshGeojson())
+        .disposeWith(this);
   }
 
   void onMapLoaded() {
     refreshGeojson();
   }
 
-  Future<void> refreshGeojson() async {
-    final tracks = await trackRepository.listAllTracks();
-    await _mapController!.addSource(
-      'tracks',
-      GeojsonSourceProperties(data: tracks),
-    );
+  bool sourceAdded = false;
+  bool refreshing = false;
 
-    await _mapController!.addLineLayer(
-      'tracks',
-      'tracks_lines',
-      LineLayerProperties(
-        lineColor: Colors.pink.toHexStringRGB(),
-      ),
-    );
+  Future<void> refreshGeojson() async {
+    if (refreshing) return;
+    try {
+      if (_mapController == null) return;
+      refreshing = true;
+
+      final tracks = await trackRepository.listAllTracks();
+
+      if (sourceAdded) {
+        await _mapController!.removeLayer('tracks_lines');
+        await _mapController!.removeSource('tracks');
+      }
+
+      await _mapController!.addSource(
+        'tracks',
+        GeojsonSourceProperties(data: tracks),
+      );
+      sourceAdded = true;
+
+      await _mapController!.addLineLayer(
+        'tracks',
+        'tracks_lines',
+        LineLayerProperties(
+          lineColor: Colors.pink.toHexStringRGB(),
+        ),
+      );
+    } finally {
+      refreshing = false;
+    }
   }
 
   @override

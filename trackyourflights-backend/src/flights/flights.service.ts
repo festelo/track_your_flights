@@ -52,35 +52,52 @@ export class FlightsService {
     return flights;
   }
 
-  async getFlightBasic(ident: string, date?: Moment) {
-    let flights = await this.flightsRepository.find({
-      where: {
-        ident: ident,
-        indexingDate: date ? Between(
-          date.startOf('day').toDate(),
-          date.endOf('day').toDate(),
-        ) : undefined,
-      }
-    })
-
-    if (flights.length === 0) {
-      flights = await this.flightAwareRepository.get(ident)
-      await this.flightsRepository.save(flights);
-    }
-
+  async getFlightBasic(ident: string, date?: Moment, checkTime: boolean = false) {
+    const flights = await this.flightAwareRepository.get(ident)
+    await this.flightsRepository.save(flights);
     
     return flights.filter((e) => {
       if (!date) return true;
       const flightDate = e.indexingDate;
-      return date.toDate().getUTCDate() == flightDate.getUTCDate() && 
-        date.toDate().getUTCMonth() == flightDate.getUTCMonth() &&
-        date.toDate().getUTCFullYear() == flightDate.getUTCFullYear();
+      const dateDate = date.toDate();
+      const datePass = dateDate.getUTCDate() == flightDate.getUTCDate() && 
+        dateDate.getUTCMonth() == flightDate.getUTCMonth() &&
+        dateDate.getUTCFullYear() == flightDate.getUTCFullYear();
+      if (!datePass) return false;
+      if (!checkTime) return datePass;
+      return datePass && 
+        dateDate.getUTCHours() == flightDate.getUTCHours() && 
+        dateDate.getUTCMinutes() == flightDate.getUTCMinutes();
     });
   }
 
-  async getFlight(ident: string, dateTime: Moment, originItea?: string, destItea?: string) {
-    let res: any = await this.getFlightBasic(ident, dateTime.clone());
+  async getFlightCached(ident: string, date?: Moment, originItea?: string, destItea?: string, checkTime: boolean = false) {
+    return await this.flightsRepository.find({
+      where: {
+        ident: ident,
+        indexingDate: date ? Between(
+          checkTime 
+            ? date.startOf('minute').toDate()
+            : date.startOf('day').toDate(),
+          checkTime 
+            ? date.endOf('minute').toDate()
+            : date.endOf('day').toDate(),
+        ) : undefined,
+        origin: originItea ? {
+          iata: originItea
+        } : undefined,
+        destination: destItea ? {
+          iata: destItea
+        } : undefined,
+      }
+    })
+  }
+
+  async getFlight(ident: string, dateTime: Moment, originItea?: string, destItea?: string, checkTime: boolean = false) {
+    let res = await this.getFlightCached(ident, dateTime, originItea, destItea, checkTime);
     if (res.length == 0) {
+      res = await this.getFlightBasic(ident, dateTime.clone(), checkTime);
+    } if (res.length == 0) {
       res = await this.getFlightAdvanced(ident, dateTime.clone(), originItea, destItea);
     }
     return res;

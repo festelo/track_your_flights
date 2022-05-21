@@ -32,7 +32,7 @@ class OrderTile extends StatelessWidget {
               children: [
                 for (final flight in order.flights)
                   FlightTile(
-                    flight: flight,
+                    orderFlight: flight,
                   ),
               ],
             ),

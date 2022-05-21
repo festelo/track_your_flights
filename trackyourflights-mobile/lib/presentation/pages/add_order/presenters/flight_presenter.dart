@@ -1,78 +1,107 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+
 import 'package:trackyourflights/domain/entities/flight.dart';
 import 'package:trackyourflights/domain/entities/flight_presearch_result.dart';
-import 'package:trackyourflights/domain/entities/flight_query_result.dart';
+import 'package:trackyourflights/presentation/date_formats.dart';
 import 'package:trackyourflights/presentation/debounce.dart';
 import 'package:trackyourflights/presentation/nonce.dart';
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
 import 'package:trackyourflights/repositories.dart';
 
+class Either<T> {
+  const Either.value(this.value) : error = null;
+  const Either.error(this.error) : value = null;
+  const Either.empty()
+      : error = null,
+        value = null;
+
+  final T? value;
+  final dynamic error;
+}
+
 class FlightPresenter extends CompletePresenterStandalone {
-  final TextEditingController flightNumberController = TextEditingController();
-  final FocusNode flightNumberFocusNode = FocusNode();
-  final TextEditingController personsController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey();
 
-  FlightPresearchResult? flightPresearch;
-  bool flightPresearchError = false;
+  final TextEditingController flightNumberController = TextEditingController();
+  final FocusNode flightNumberFocusNode = FocusNode();
+
   DateTime? flightDate;
 
-  String? flightFindingError;
-  bool flightLoading = false;
+  final TextEditingController personsController = TextEditingController();
 
-  final Debounce _searchDebounce = Debounce();
+  final TextEditingController departureTimeController = TextEditingController();
+  final FocusNode departureTimeFocusNode = FocusNode();
+
+  final TextEditingController departureAirportController =
+      TextEditingController();
+  final FocusNode departureAirportFocusNode = FocusNode();
+  String _lastDepartureAirport = '';
+
+  bool departureTimeSet = false;
+  int departureHours = 0;
+  int departureMinutes = 0;
+
+  final TextEditingController arrivalAirportController =
+      TextEditingController();
+  final FocusNode arrivalAirportFocusNode = FocusNode();
+  String _lastArrivalAirport = '';
+
+  Either<FlightPresearchResult> flightPresearch = const Either.empty();
+  Either<List<Flight>> foundFlights = const Either.empty();
+
+  final Debounce _presearchDebounce = Debounce();
   final Nonce _foundFlightsNonce = Nonce();
 
-  List<FlightQueryResult> foundFlights = [];
-  FlightQueryResult get selectedFlight => foundFlights.first;
+  Flight? get selectedFlight => foundFlights.value?.firstOrNull;
+
+  bool flightLoading = false;
 
   @override
   void initState() {
     super.initState();
-    flightNumberController.addListener(
-      () => _searchDebounce.exec(
-        (i) => _onFlightNumberChanged(i),
-      ),
-    );
-    flightNumberFocusNode.addListener(() {
-      if (!flightNumberFocusNode.hasFocus &&
-          flightDate != null &&
-          !flightPresearchError &&
-          flightPresearch != null) {
-        searchFlights();
+    flightNumberController.addListener(_onFlightNumberChanged);
+    flightNumberFocusNode.addListener(_onSearchParametersChanged);
+    departureTimeFocusNode.addListener(_onDepartureTimeChanged);
+    departureAirportFocusNode.addListener(() {
+      if (!departureAirportFocusNode.hasFocus &&
+          _lastDepartureAirport != departureAirportController.text.trim()) {
+        _lastDepartureAirport = departureAirportController.text.trim();
+        _onSearchParametersChanged();
+      }
+    });
+    arrivalAirportFocusNode.addListener(() {
+      if (!arrivalAirportFocusNode.hasFocus &&
+          _lastArrivalAirport != arrivalAirportController.text.trim()) {
+        _lastArrivalAirport = arrivalAirportController.text.trim();
+        _onSearchParametersChanged();
       }
     });
   }
 
-  void _onFlightNumberChanged(int nonce) async {
-    this.flightPresearch = null;
-    FlightPresearchResult? flightPresearch;
-    bool flightPresearchError;
-    if (flightNumberController.text.trim().isEmpty) {
-      flightPresearch = null;
-      flightPresearchError = false;
-    } else {
-      final value =
-          await flightSearchRepository.presearch(flightNumberController.text);
-      flightPresearch = value;
-      flightPresearchError = value == null;
-    }
-    if (_searchDebounce.shouldApplyValue(nonce)) {
-      this.flightPresearch = flightPresearch;
-      this.flightPresearchError = flightPresearchError;
-      if (flightPresearch != null &&
-          !flightNumberFocusNode.hasFocus &&
-          flightDate != null) {
-        searchFlights();
+  void _onFlightNumberChanged() {
+    _presearchDebounce.exec((nonce) async {
+      final newFlightNumber = flightNumberController.text.trim();
+      flightPresearch = const Either.empty();
+      if (newFlightNumber.isEmpty) {
+        return;
       }
+      final value = await flightSearchRepository.presearch(newFlightNumber);
+      if (!_presearchDebounce.shouldApplyValue(nonce)) {
+        return;
+      }
+      flightPresearch = Either.value(value);
       notify();
-    }
+
+      _onSearchParametersChanged();
+    });
   }
 
   Future<void> selectFlightDate() async {
     final date = await showDatePicker(
       context: context!,
-      initialDate: DateTime.now(),
+      initialDate: flightDate ?? DateTime.now(),
+      initialEntryMode: DatePickerEntryMode.input,
       firstDate: DateTime(1900),
       lastDate: DateTime(2200),
     );
@@ -80,37 +109,92 @@ class FlightPresenter extends CompletePresenterStandalone {
     flightDate = DateTime.utc(date.year, date.month, date.day);
     notify();
 
-    if (!flightPresearchError &&
-        flightNumberController.text.trim().isNotEmpty) {
-      searchFlights();
+    _onSearchParametersChanged();
+  }
+
+  void _onDepartureTimeChanged() {
+    if (departureTimeFocusNode.hasFocus) {
+      return;
+    }
+    final oldDepartureHours = departureHours;
+    final oldDepartureMinutes = departureMinutes;
+    final oldDepartureTimeSet = departureTimeSet;
+    if (departureTimeController.text.trim().isEmpty) {
+      departureHours = 0;
+      departureMinutes = 0;
+      departureTimeSet = false;
+    } else {
+      final time = DateTimeParser.time(context!, departureTimeController.text);
+      if (time == null) {
+        return;
+      }
+      departureHours = time.hour;
+      departureMinutes = time.minute;
+      departureTimeSet = true;
+    }
+
+    if (oldDepartureTimeSet != departureTimeSet ||
+        oldDepartureMinutes != departureMinutes ||
+        oldDepartureHours != departureHours) {
+      _onSearchParametersChanged();
     }
   }
 
+  void _onSearchParametersChanged() {
+    if (flightNumberFocusNode.hasFocus) {
+      return;
+    }
+    if (flightPresearch.value == null) {
+      return;
+    }
+    if (flightDate == null) {
+      return;
+    }
+    searchFlights();
+  }
+
   Future<void> searchFlights() async {
-    flightFindingError = null;
-    foundFlights = [];
     flightLoading = true;
+    foundFlights = const Either.empty();
     notify();
+
     final nonce = _foundFlightsNonce.increase();
+
     try {
       final flights = await flightSearchRepository.find(
-        flightPresearch!.ident,
-        flightDate!,
+        flightPresearch.value!.ident,
+        flightDate!.add(
+          Duration(
+            hours: departureHours,
+            minutes: departureMinutes,
+          ),
+        ),
+        checkTime: departureTimeSet,
+        destItea: arrivalAirportController.text.trim().isEmpty
+            ? null
+            : arrivalAirportController.text.trim(),
+        originItea: departureAirportController.text.trim().isEmpty
+            ? null
+            : arrivalAirportController.text.trim(),
       );
 
-      if (_foundFlightsNonce.shouldApplyValue(nonce)) {
-        foundFlights = flights;
-        if (flights.isEmpty) {
-          flightFindingError = 'Flight not found :(';
-        } else {
-          flightFindingError = null;
-        }
-        flightLoading = false;
-        notify();
+      if (!_foundFlightsNonce.shouldApplyValue(nonce)) {
+        return;
+      }
+
+      if (flights.isNotEmpty) {
+        foundFlights = Either.value(flights);
+      } else {
+        foundFlights = const Either.error('Flight not found :(');
       }
     } catch (e) {
+      if (!_foundFlightsNonce.shouldApplyValue(nonce)) {
+        return;
+      }
+
+      foundFlights = const Either.error('Oh no, I faced some problems');
+    } finally {
       if (_foundFlightsNonce.shouldApplyValue(nonce)) {
-        flightFindingError = 'Oh no, I faced some problems';
         flightLoading = false;
         notify();
       }
@@ -124,18 +208,17 @@ class FlightPresenter extends CompletePresenterStandalone {
     if (!formKey.currentState!.validate()) {
       return 'Oops. Issues found, please fix them';
     }
-    if (flightFindingError != null || foundFlights.isEmpty) {
+    if (foundFlights.error != null) {
       return 'There\'s an error in flight search';
+    }
+    if (foundFlights.value?.isEmpty ?? true) {
+      return 'Flights not found yet';
     }
     return null;
   }
 
-  Flight get flight => Flight(
-        id: selectedFlight.id,
-        from: selectedFlight.from,
-        to: selectedFlight.to,
-        airplane: selectedFlight.airplane,
-        flightAwareLink: selectedFlight.flightAwareLink,
+  OrderFlight get flight => OrderFlight(
+        flight: selectedFlight!,
         personsCount: int.parse(personsController.text),
       );
 
@@ -143,6 +226,13 @@ class FlightPresenter extends CompletePresenterStandalone {
   void dispose() {
     super.dispose();
     personsController.dispose();
+    flightNumberController.dispose();
     flightNumberFocusNode.dispose();
+    departureAirportController.dispose();
+    departureAirportFocusNode.dispose();
+    arrivalAirportController.dispose();
+    arrivalAirportFocusNode.dispose();
+    departureTimeController.dispose();
+    departureTimeFocusNode.dispose();
   }
 }

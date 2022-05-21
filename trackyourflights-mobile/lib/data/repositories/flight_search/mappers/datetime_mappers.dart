@@ -5,6 +5,6 @@ abstract class DateTimeMappers {
 
   static DateTime? dateTimeFromEpochNullable(int? seconds) {
     if (seconds == null) return null;
-    return DateTime.fromMillisecondsSinceEpoch(seconds * 1000);
+    return DateTime.fromMillisecondsSinceEpoch(seconds * 1000, isUtc: true);
   }
 }

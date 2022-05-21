@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 
 import 'package:trackyourflights/presentation/pages/add_order/presenters/flight_presenter.dart';
 
@@ -24,9 +22,9 @@ class FlightTitle extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              presenter.flightPresearch == null
+              presenter.flightPresearch.value == null
                   ? 'Flight ${flightNumber + 1}'
-                  : 'Flight ${flightNumber + 1} (${presenter.flightPresearch!.description})',
+                  : 'Flight ${flightNumber + 1} (${presenter.flightPresearch.value!.description})',
               maxLines: 1,
               style: const TextStyle(fontSize: 16),
             ),
