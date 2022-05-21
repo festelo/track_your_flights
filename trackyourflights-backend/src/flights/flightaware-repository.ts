@@ -72,13 +72,13 @@ export class FlightAwareRepository {
           TZ: e.actualarrivaltime.tz ?? e.filed_arrivaltime.tz ?? e.estimatedarrivaltime.tz,
           airport: e.display_destination.airport_name,
           city: e.display_destination.city,
-          iata: path.dest,
+          iata: path?.dest,
         },
         origin: {
           TZ: e.actualdeparturetime.tz ?? e.filed_departuretime.tz ?? e.estimateddeparturetime.tz,
           airport: e.display_origin.airport_name,
           city: e.display_origin.city,
-          iata: path.origin,
+          iata: path?.origin,
         },
         flightStatus: e.status,
         takeoffTimes: {

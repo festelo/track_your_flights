@@ -101,7 +101,9 @@ export class FlightAwareAdvancedRepository {
     } else if ('historyUrlForSomeFlightOfThisRoute' in data.routeInfo && 
       data.routeInfo.historyUrlForSomeFlightOfThisRoute) {
       const path = getPathFromHistoryLink(data.routeInfo.historyUrlForSomeFlightOfThisRoute);
-      pathPart = '/' + path.origin + '/' + path.dest;
+      if (path != null) {
+        pathPart = '/' + path.origin + '/' + path.dest;
+      }
     }
 
     const encodedDate = encodeURIComponent(data.dateTime.utc().format('YYYYMMDD'))
