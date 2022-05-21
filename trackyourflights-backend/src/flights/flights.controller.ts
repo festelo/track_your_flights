@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { IsBoolean, IsDate, IsDateString } from 'class-validator';
+import { IsDateString } from 'class-validator';
 import { FlightsService } from './flights.service';
 import * as moment from 'moment';
 
@@ -9,8 +9,7 @@ class GetDto {
   public ident: string
   public originItea?: string
   public destItea?: string
-  @IsBoolean()
-  public checkTime: boolean = false
+  public checkTime: string
 }
 
 @Controller('flights')
@@ -25,6 +24,6 @@ export class FlightsController {
 
   @Get('get')
   async get(@Query() query: GetDto) {
-    return this.flightsService.getFlight(query.ident, moment(query.date), query.originItea, query.destItea, query.checkTime);
+    return this.flightsService.getFlight(query.ident, moment(query.date), query.originItea, query.destItea, query.checkTime == 'true');
   }
 }
