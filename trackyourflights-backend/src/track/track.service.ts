@@ -46,7 +46,7 @@ export class TrackService {
   }
 
   private resolvePath(flightId: string, params : {checkForExistance: boolean} = { checkForExistance: true}) { 
-    flightId = flightId.replace('/', '_').replace('\\', '_');
+    flightId = flightId.toString().replace('/', '_').replace('\\', '_');
     const resolvedPath = path.resolve(paths.tracks,`${flightId}.geojson`);
     if (params.checkForExistance && !checkIfFileOrDirectoryExists(resolvedPath)) {
       throw new BadRequestException(`Geojson for ${flightId} doesnt exist`);
@@ -59,10 +59,15 @@ export class TrackService {
   }
 
   public async getUsersGeojsons(userId: string)  { 
-    const flightEntities = await this.userFlightsRepository.findBy({
-      order: {
-        userId: userId,
-      }
+    const flightEntities = await this.userFlightsRepository.find({
+      where: {
+        order: {
+          userId: userId,
+        }
+      },
+      relations: {
+        flight: true,
+      },
     })
     return geojsonMerge.mergeFeatureCollectionStream(
       flightEntities.map((e) => this.resolvePath(e.flight.id))

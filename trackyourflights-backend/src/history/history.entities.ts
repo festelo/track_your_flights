@@ -30,6 +30,23 @@ export class Order {
   @Column()
   orderedAt: Date;
 
+  @Column({
+    nullable: true,
+  })
+  comment?: string;
+
+
+  @Column({
+    nullable: true,
+  })
+  link?: string;
+
+
+  @Column({
+    nullable: true,
+  })
+  seller?: string;
+
   @OneToMany(() => OrderFlight, (flight) => flight.order)
   flights: Array<OrderFlight>;
 }

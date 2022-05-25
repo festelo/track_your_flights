@@ -60,32 +60,7 @@ export class FlightAwareAdvancedRepository {
     return token;
   }
 
-  private async getByHistoryUrl(data: GetByHistoryUrl) {
-    const logPollToken = await this.getLogPollToken(data.historyUrl)
-    if (!logPollToken) {
-      return null;
-    }
-    const trackPollUrl = new URL('https://flightaware.com/ajax/trackpoll.rvt')
-    trackPollUrl.searchParams.append('token', logPollToken)
-    const res = await lastValueFrom(this.httpService.get(trackPollUrl.toString(), {
-      headers: { 
-        'Cookie':
-            'w_sid=305cfdef5f41d9988d8ef79370d872f21c31c0aff1c60c314374c7201b5ca3a2',
-      }
-    }));
-    const responseData = res.data as AdvancedResponse;
-    if (!responseData.flights) {
-      return null;
-    }
-    const keys = Object.keys(responseData.flights);
-    if (keys.every((e: string) => e.includes('INVALID'))) {
-      return null;
-    }
-    return responseData;
-  }
-
-
-  private async getByRouteInfo(data: GetByRouteInfo) {
+  private formHistoryUrl(data: GetByRouteInfo) {
     let pathPart = '';
     let ident = '';
     
@@ -115,10 +90,39 @@ export class FlightAwareAdvancedRepository {
     if (historyUrl.endsWith('/')) {
       historyUrl = historyUrl.substring(0, historyUrl.length - 1);
     }
+    return historyUrl;
+  }
 
-    return this.getByHistoryUrl({
-      historyUrl,
-    })
+  private async getByHistoryUrl(data: GetByHistoryUrl) {
+    const logPollToken = await this.getLogPollToken(data.historyUrl)
+    if (!logPollToken) {
+      return null;
+    }
+    const trackPollUrl = new URL('https://flightaware.com/ajax/trackpoll.rvt')
+    trackPollUrl.searchParams.append('token', logPollToken)
+    const res = await lastValueFrom(this.httpService.get(trackPollUrl.toString(), {
+      headers: { 
+        'Cookie':
+            'w_sid=305cfdef5f41d9988d8ef79370d872f21c31c0aff1c60c314374c7201b5ca3a2',
+        'X-Locale': 'en_US',
+      }
+    }));
+    const responseData = res.data as AdvancedResponse;
+    if (!responseData.flights) {
+      return null;
+    }
+    const keys = Object.keys(responseData.flights);
+    if (keys.every((e: string) => e.includes('INVALID'))) {
+      return null;
+    }
+    return responseData;
+  }
+
+
+  private async getByRouteInfo(data: GetByRouteInfo) {
+    const historyUrl = this.formHistoryUrl(data)
+
+    return this.getByHistoryUrl({ historyUrl })
   }
 
   public async get(data: GetByHistoryUrl | GetByRouteInfo) {
@@ -177,5 +181,37 @@ export class FlightAwareAdvancedRepository {
         ident: f.displayIdent,
         indexingDate: dateFromEpoch(f.takeoffTimes.scheduled) || dateFromEpoch(f.takeoffTimes.estimated),
       }));
+  }
+
+  private async checkExistanceByHistoryUrl(data: GetByHistoryUrl) {
+    const logPollToken = await this.getLogPollToken(data.historyUrl)
+    if (!logPollToken) {
+      return null;
+    }
+    const googleEarthUrl = new URL(data.historyUrl + '/google_earth')
+    const res = await lastValueFrom(this.httpService.get(googleEarthUrl.toString(), {
+      headers: { 
+        'Cookie':
+            'w_sid=305cfdef5f41d9988d8ef79370d872f21c31c0aff1c60c314374c7201b5ca3a2',
+        'X-Locale': 'en_US',
+      },
+      validateStatus: (status) => true,
+      timeout: 20000
+    }));
+    const responseData = (res.data as string).trim();
+    if (responseData == 'No track log available') return false;
+    if (responseData == 'Invalid request') throw new Error('Invalid request');
+    return true;
+  }
+
+  public async checkExistance(data: GetByHistoryUrl | GetByRouteInfo) {
+    let res: boolean;
+    if ('historyUrl' in data) {
+      res = await this.checkExistanceByHistoryUrl(data)
+    } else {
+      const historyUrl = this.formHistoryUrl(data)
+      res = await this.checkExistanceByHistoryUrl({historyUrl})
+    }
+    return res;
   }
 }

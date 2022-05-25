@@ -16,6 +16,9 @@ export class HistoryController {
       price: body.price,
       userId: req.user.id,
       flights: null,
+      seller: body.seller,
+      link: body.link,
+      comment: body.comment,
     });
 
     const flights = body.flights.map((e) => new OrderFlight({

@@ -16,6 +16,10 @@ export class OrderDto {
   @Type(() => OrderFlightDto)
   @ValidateNested()
   flights: OrderFlightDto[];
+
+  comment?: string;
+  link?: string;
+  seller?: string;
 }
 
 export class OrderFlightDto {

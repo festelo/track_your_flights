@@ -15,6 +15,9 @@ abstract class OrderMappers {
       flights: List<OrderFlight>.from(
         map['flights']?.map((x) => OrderFlightMappers.flightFromMap(x)),
       ),
+      link: map['link'],
+      comment: map['comment'],
+      seller: map['seller'],
     );
   }
 }

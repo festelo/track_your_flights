@@ -29,13 +29,33 @@ class FlightTile extends StatelessWidget {
                         orderFlight.flight.origin.city,
                         maxLines: 2,
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                         ),
                       ),
-                      Text(
-                        orderFlight.flight.takeoffTimes.display
-                                ?.formattedTime(context) ??
-                            '-',
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            orderFlight.flight.takeoffTimes.display
+                                    ?.formattedTime(context) ??
+                                '-',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            orderFlight.flight.takeoffTimes.display
+                                    ?.formattedDateShort(context) ??
+                                '-',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -50,13 +70,33 @@ class FlightTile extends StatelessWidget {
                       orderFlight.flight.destination.city,
                       maxLines: 2,
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                       ),
                     ),
-                    Text(
-                      orderFlight.flight.landingTimes.display
-                              ?.formattedTime(context) ??
-                          '-',
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          orderFlight.flight.landingTimes.display
+                                  ?.formattedTime(context) ??
+                              '-',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          orderFlight.flight.landingTimes.display
+                                  ?.formattedDateShort(context) ??
+                              '-',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -107,8 +147,7 @@ class FlightTile extends StatelessWidget {
                     Text(
                       orderFlight.flight.landingTimes.display!
                           .difference(orderFlight.flight.takeoffTimes.display!)
-                          .inHours
-                          .toString(),
+                          .formattedTime(context),
                       style: const TextStyle(
                         fontSize: 14,
                       ),

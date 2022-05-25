@@ -23,24 +23,9 @@ export class FlightsService {
   }
 
   async getFlightAdvanced(ident: string, dateTime: Moment, originItea?: string, destItea?: string) {
-    let anyFlightOfThisIdent: Flight;
-    // dont waste time if we have all data
-    if (!originItea || !destItea) {
-      anyFlightOfThisIdent = await this.flightsRepository.findOne({
-        where: {
-          ident: ident
-        }
-      });
-      if (!anyFlightOfThisIdent) {
-        const flights = await this.flightAwareRepository.get(ident);
-        anyFlightOfThisIdent = flights[0];
-        await this.flightsRepository.save(flights);
-      }
-    }
     const flights = await this.flightAwareAdvancedRepository.get({
       dateTime: dateTime,
       routeInfo: {
-        historyUrlForSomeFlightOfThisRoute: anyFlightOfThisIdent?.flightAwarePermaLink,
         ident: ident,
         destItea: destItea,
         originItea: originItea,
@@ -101,5 +86,24 @@ export class FlightsService {
       res = await this.getFlightAdvanced(ident, dateTime.clone(), originItea, destItea);
     }
     return res;
+  }
+
+  async parseAllTimes(ident: string, dateTime: Moment, originItea?: string, destItea?: string) {
+    while (true) {
+      try {
+        console.log(dateTime.toISOString(false))
+        const exists = await this.flightAwareAdvancedRepository.checkExistance({ dateTime: dateTime.clone(), routeInfo: { ident, originItea: originItea, destItea: destItea}});
+        if (exists) {
+          return await this.flightAwareAdvancedRepository.get({ dateTime: dateTime.clone(), routeInfo: { ident, originItea: originItea, destItea: destItea}});
+        }
+        dateTime.add(1, 'minute')
+        if (dateTime.hours() == 0 && dateTime.minutes() == 0) {
+          break;
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    return [];
   }
 }

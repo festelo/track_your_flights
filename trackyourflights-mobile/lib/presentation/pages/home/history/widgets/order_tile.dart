@@ -34,6 +34,24 @@ class OrderTile extends StatelessWidget {
                   FlightTile(
                     orderFlight: flight,
                   ),
+                if (order.comment != null) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.03),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Text(
+                      order.comment!,
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ],
             ),
           ),
@@ -46,7 +64,7 @@ class OrderTile extends StatelessWidget {
               ),
             ),
             padding:
-                const EdgeInsets.only(left: 12, top: 13, bottom: 12, right: 12),
+                const EdgeInsets.only(left: 12, top: 12, bottom: 12, right: 12),
             child: Text(
               order.price.currency.symbol +
                   order.price.amount.toStringAsFixed(2),

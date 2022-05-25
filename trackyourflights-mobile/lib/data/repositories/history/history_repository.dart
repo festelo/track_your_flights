@@ -40,6 +40,9 @@ class HistoryRepositoryImpl implements HistoryRepository {
             currency: order.price.currency.name,
           ),
           orderedAt: order.orderedAt,
+          comment: order.comment,
+          link: order.link,
+          seller: order.seller,
           flights: order.flights
               .map(
                 (e) => AddOrderFlightDto(

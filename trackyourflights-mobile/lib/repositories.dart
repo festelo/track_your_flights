@@ -29,7 +29,7 @@ final prodUriResolver = UriResolver(
   path: 'api',
 );
 
-UriResolver get uriResolver => debugUriResolver;
+UriResolver get uriResolver => prodUriResolver;
 
 final client = HttpClient(
   Client(),

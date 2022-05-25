@@ -16,6 +16,8 @@ class AddOrderPresenter extends CompletePresenterStandalone {
   final GlobalKey<PrimaryButtonState> buttonKey = GlobalKey();
   final TextEditingController priceController = TextEditingController();
   final TextEditingController commentController = TextEditingController();
+  final TextEditingController linkController = TextEditingController();
+  final TextEditingController sellerController = TextEditingController();
 
   Currency? orderCurrency;
   DateTime? orderDate;
@@ -59,8 +61,8 @@ class AddOrderPresenter extends CompletePresenterStandalone {
     notify();
   }
 
-  Future<void> selectOrderCurrency() async {
-    orderCurrency = Currency.eur;
+  Future<void> selectOrderCurrency(Currency currency) async {
+    orderCurrency = currency;
     notify();
   }
 
@@ -101,6 +103,9 @@ class AddOrderPresenter extends CompletePresenterStandalone {
         ),
         flights: flights,
         orderedAt: orderDate!,
+        comment: commentController.text.trim(),
+        link: linkController.text.trim(),
+        seller: sellerController.text.trim(),
       );
       await trackRepository.saveOrderTracks(order);
       await historyRepository.saveOrder(order);
@@ -118,6 +123,8 @@ class AddOrderPresenter extends CompletePresenterStandalone {
     super.dispose();
     priceController.dispose();
     commentController.dispose();
+    linkController.dispose();
+    sellerController.dispose();
     for (var e in flightPresenters) {
       e.dispose();
     }

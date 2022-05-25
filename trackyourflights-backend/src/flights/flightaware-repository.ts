@@ -55,7 +55,7 @@ export class FlightAwareRepository {
     const flights = res.data.TrackIdentResult.flights as [FlightApiDto]
 
     const mappedFlights = flights.map((e) => {
-      const indexingDate = new Date(e.filed_departuretime.epoch * 1000);
+      const indexingDate = dateFromEpoch(e.filed_departuretime?.epoch) || dateFromEpoch(e.estimateddeparturetime?.epoch)
       const path = getPathFromHistoryLink(e.flight_history_link)
       return new Flight({
         id: null,

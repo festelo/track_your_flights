@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trackyourflights/domain/entities/currency.dart';
 import 'package:trackyourflights/presentation/date_formats.dart';
 import 'package:trackyourflights/presentation/pages/add_order/presenters/add_order_presenter.dart';
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
@@ -45,12 +46,20 @@ class OrderInfoForm extends ConsumerWidget {
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: ButtonStyledAsTextField(
-              label: 'Order Currency',
-              hint: 'Select currency',
-              value: presenter.orderCurrency?.name,
-              onTap: presenter.selectOrderCurrency,
-              validator: (e) => e == null || e.isEmpty ? 'Please select' : null,
+            child: DropdownButtonFormField<Currency>(
+              items: [
+                for (final c in Currency.values)
+                  DropdownMenuItem(
+                    value: c,
+                    child: Text(c.name),
+                  )
+              ],
+              decoration: const InputDecoration(
+                labelText: 'Order Currency',
+                hintText: 'Select currency',
+              ),
+              onChanged: (c) => presenter.selectOrderCurrency(c!),
+              value: presenter.orderCurrency,
             ),
           ),
           const SizedBox(height: 8),
@@ -64,6 +73,32 @@ class OrderInfoForm extends ConsumerWidget {
               ),
               maxLines: null,
               controller: presenter.commentController,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'Order Link',
+                hintText: 'You can enter any link',
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+              ),
+              maxLines: null,
+              controller: presenter.linkController,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'Order Seller',
+                hintText: 'Where did you buy it?',
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+              ),
+              maxLines: null,
+              controller: presenter.sellerController,
             ),
           ),
         ],

@@ -12,6 +12,14 @@ class GetDto {
   public checkTime: string
 }
 
+class ParseTimeDto {
+  @IsDateString()
+  public startDate: string
+  public ident: string
+  public originItea?: string
+  public destItea?: string
+}
+
 @Controller('flights')
 export class FlightsController {
   constructor(private flightsService: FlightsService) {}
@@ -26,4 +34,10 @@ export class FlightsController {
   async get(@Query() query: GetDto) {
     return this.flightsService.getFlight(query.ident, moment(query.date), query.originItea, query.destItea, query.checkTime == 'true');
   }
+  
+  @Get('parse-times')
+  async parseTime(@Query() query: ParseTimeDto) {
+    return this.flightsService.parseAllTimes(query.ident, moment(query.startDate), query.originItea, query.destItea);
+  }
+  
 }
