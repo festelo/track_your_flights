@@ -79,6 +79,7 @@ class AddOrderPage extends ConsumerWidget {
                           presenter: entry.value,
                         ),
                       ],
+                      const SizedBox(height: 64),
                     ],
                   ),
                 ),

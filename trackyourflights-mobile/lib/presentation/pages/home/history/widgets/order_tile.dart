@@ -34,7 +34,8 @@ class OrderTile extends StatelessWidget {
                   FlightTile(
                     orderFlight: flight,
                   ),
-                if (order.comment != null) ...[
+                if (order.comment != null &&
+                    order.comment!.trim().isNotEmpty) ...[
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(

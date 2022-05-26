@@ -45,6 +45,22 @@ class FlightSearchRepositoryImpl implements FlightSearchRepository {
   }
 
   @override
+  Future<List<Flight>> findByFlightaware(String flightAwareLink) async {
+    final res = await client.get(
+      uriResolver.uri('/flights/get/flightaware', [
+        QueryParam('link', flightAwareLink),
+      ]),
+    );
+    final resJson = jsonDecode(res.body) as List;
+    final mappedRes = resJson
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .map(FlightMappers.flightFromMap)
+        .toList();
+
+    return mappedRes;
+  }
+
+  @override
   Future<FlightPresearchResult?> presearch(String flightNumber) async {
     final res = await client.get(
       uriResolver.uri('/flights/search', [

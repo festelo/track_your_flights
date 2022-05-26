@@ -23,6 +23,11 @@ class Either<T> {
 class FlightPresenter extends CompletePresenterStandalone {
   final GlobalKey<FormState> formKey = GlobalKey();
 
+  final TextEditingController flightAwareLinkController =
+      TextEditingController();
+  final FocusNode flightAwareLinkFocusNode = FocusNode();
+  String _lastFlightAwareLink = '';
+
   final TextEditingController flightNumberController = TextEditingController();
   final FocusNode flightNumberFocusNode = FocusNode();
 
@@ -57,6 +62,20 @@ class FlightPresenter extends CompletePresenterStandalone {
 
   bool flightLoading = false;
 
+  bool _findByFlightAwareLink = false;
+
+  bool get findByFlightAwareLink => _findByFlightAwareLink;
+  set findByFlightAwareLink(val) {
+    _findByFlightAwareLink = val;
+    foundFlights = const Either.empty();
+    if (_findByFlightAwareLink) {
+      _maybeSearchByFlightawareLink();
+    } else {
+      _onSearchParametersChanged();
+    }
+    notify();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -75,6 +94,13 @@ class FlightPresenter extends CompletePresenterStandalone {
           _lastArrivalAirport != arrivalAirportController.text.trim()) {
         _lastArrivalAirport = arrivalAirportController.text.trim();
         _onSearchParametersChanged();
+      }
+    });
+    flightAwareLinkFocusNode.addListener(() {
+      if (!flightAwareLinkFocusNode.hasFocus &&
+          _lastFlightAwareLink != flightAwareLinkController.text.trim()) {
+        _lastFlightAwareLink = flightAwareLinkController.text.trim();
+        _maybeSearchByFlightawareLink();
       }
     });
   }
@@ -150,10 +176,24 @@ class FlightPresenter extends CompletePresenterStandalone {
     if (flightDate == null) {
       return;
     }
-    searchFlights();
+    if (!_findByFlightAwareLink) {
+      searchFlights();
+    }
   }
 
-  Future<void> searchFlights() async {
+  void _maybeSearchByFlightawareLink() {
+    if (!_findByFlightAwareLink ||
+        flightAwareLinkController.text.trim().isEmpty) {
+      return;
+    }
+    searchFlights(
+      searchByFlightawareLink: true,
+    );
+  }
+
+  Future<void> searchFlights({
+    searchByFlightawareLink = false,
+  }) async {
     flightLoading = true;
     foundFlights = const Either.empty();
     notify();
@@ -161,22 +201,28 @@ class FlightPresenter extends CompletePresenterStandalone {
     final nonce = _foundFlightsNonce.increase();
 
     try {
-      final flights = await flightSearchRepository.find(
-        flightPresearch.value!.ident,
-        flightDate!.add(
-          Duration(
-            hours: departureHours,
-            minutes: departureMinutes,
+      final List<Flight> flights;
+      if (searchByFlightawareLink) {
+        flights = await flightSearchRepository
+            .findByFlightaware(flightAwareLinkController.text.trim());
+      } else {
+        flights = await flightSearchRepository.find(
+          flightPresearch.value!.ident,
+          flightDate!.add(
+            Duration(
+              hours: departureHours,
+              minutes: departureMinutes,
+            ),
           ),
-        ),
-        checkTime: departureTimeSet,
-        destItea: arrivalAirportController.text.trim().isEmpty
-            ? null
-            : arrivalAirportController.text.trim(),
-        originItea: departureAirportController.text.trim().isEmpty
-            ? null
-            : arrivalAirportController.text.trim(),
-      );
+          checkTime: departureTimeSet,
+          destItea: arrivalAirportController.text.trim().isEmpty
+              ? null
+              : arrivalAirportController.text.trim(),
+          originItea: departureAirportController.text.trim().isEmpty
+              ? null
+              : arrivalAirportController.text.trim(),
+        );
+      }
 
       if (!_foundFlightsNonce.shouldApplyValue(nonce)) {
         return;
@@ -225,6 +271,8 @@ class FlightPresenter extends CompletePresenterStandalone {
   @override
   void dispose() {
     super.dispose();
+    flightAwareLinkController.dispose();
+    flightAwareLinkFocusNode.dispose();
     personsController.dispose();
     flightNumberController.dispose();
     flightNumberFocusNode.dispose();

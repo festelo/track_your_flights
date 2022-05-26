@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
 import { IsDateString } from 'class-validator';
 import { FlightsService } from './flights.service';
 import * as moment from 'moment';
@@ -33,6 +33,17 @@ export class FlightsController {
   @Get('get')
   async get(@Query() query: GetDto) {
     return this.flightsService.getFlight(query.ident, moment(query.date), query.originItea, query.destItea, query.checkTime == 'true');
+  }
+
+  @Get('get/flightaware')
+  async getByFlightaware(@Query('link') link: string) {
+    const linkRegex = /^(?:(?:https:\/\/)?[\w]*.?flightaware.com)?(\/live\/.+)$/
+    const match = link.match(linkRegex);
+
+    if (!match) {
+      throw new BadRequestException('Bad link')
+    }
+    return this.flightsService.getFlightByFlightaware(match[1]);
   }
   
   @Get('parse-times')

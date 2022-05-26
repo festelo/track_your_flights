@@ -22,24 +22,70 @@ export class FlightsService {
     return await this.flightAwareRepository.search(q);
   }
 
-  async getFlightAdvanced(ident: string, dateTime: Moment, originItea?: string, destItea?: string) {
-    const flights = await this.flightAwareAdvancedRepository.get({
-      dateTime: dateTime,
-      routeInfo: {
-        ident: ident,
-        destItea: destItea,
-        originItea: originItea,
-      }
-    })
-    if (flights.length !== 0) {
-      await this.flightsRepository.save(flights);
+  private async saveFlightsToDb(flights: Flight[]) {
+    if (flights.length == 0) return;
+
+    const flightsMap: Record<string, Record<string, Flight>> = {};
+
+    const paramsPlaceholders = [];
+    for (let counter = 0, i = 0; i < flights.length; i++, counter += 2) {
+      paramsPlaceholders.push(`(:p${counter}, :p${counter + 1})`)
+      
+      flightsMap[flights[i].ident] ??= {}
+      flightsMap[flights[i].ident][flights[i].indexingDate.toISOString()] = flights[i]
     }
+
+    const paramsPlaceholdersString = paramsPlaceholders.join(',')
+
+    const paramsArray = flights.flatMap((e) => ([e.ident, e.indexingDate ]))
+    const paramsObj = {}
+    for (let i = 0; i < paramsArray.length; i++) {
+      paramsObj['p' + i] = paramsArray[i];
+    }
+
+
+    const databaseFlights = await this.flightsRepository
+      .createQueryBuilder()
+      .where(
+        `(ident, indexingDate) in ( VALUES ${paramsPlaceholdersString})`, 
+        paramsObj
+      )
+      .getMany()
+
+    for (const flight of databaseFlights) {
+      const flightToUpdate = flightsMap[flight.ident] && flightsMap[flight.ident][flight.indexingDate.toISOString()];
+      if (!flightToUpdate) continue;
+      flightToUpdate.id = flight.id;
+    }
+
+    await this.flightsRepository.save(flights);
+  }
+
+  
+  async getFlightAdvanced(req: {ident: string, dateTime: Moment, originItea?: string, destItea?: string} | string) {
+    let flights: Flight[];
+    if (typeof req === 'string' || req instanceof String) {
+      flights = await this.flightAwareAdvancedRepository.get({
+        historyUrl: req as string,
+      })
+    }
+    else { 
+      flights = await this.flightAwareAdvancedRepository.get({
+        dateTime: req.dateTime,
+        routeInfo: {
+          ident: req.ident,
+          destItea: req.destItea,
+          originItea: req.originItea,
+        }
+      })
+    }
+    await this.saveFlightsToDb(flights);
     return flights;
   }
 
   async getFlightBasic(ident: string, date?: Moment, checkTime: boolean = false) {
     const flights = await this.flightAwareRepository.get(ident)
-    await this.flightsRepository.save(flights);
+    await this.saveFlightsToDb(flights);
     
     return flights.filter((e) => {
       if (!date) return true;
@@ -78,12 +124,28 @@ export class FlightsService {
     })
   }
 
+  async getFlightCachedByFlightawareLink(flightAwareLink: string) {
+    return await this.flightsRepository.find({
+      where: {
+        flightAwarePermaLink: flightAwareLink,
+      }
+    })
+  }
+
   async getFlight(ident: string, dateTime: Moment, originItea?: string, destItea?: string, checkTime: boolean = false) {
     let res = await this.getFlightCached(ident, dateTime, originItea, destItea, checkTime);
     if (res.length == 0) {
       res = await this.getFlightBasic(ident, dateTime.clone(), checkTime);
     } if (res.length == 0) {
-      res = await this.getFlightAdvanced(ident, dateTime.clone(), originItea, destItea);
+      res = await this.getFlightAdvanced({ident, dateTime: dateTime.clone(), originItea, destItea});
+    }
+    return res;
+  }
+
+  async getFlightByFlightaware(flightAwareLink: string) {
+    let res = await this.getFlightCachedByFlightawareLink(flightAwareLink);
+    if (res.length == 0) {
+      res = await this.getFlightAdvanced(flightAwareLink);
     }
     return res;
   }

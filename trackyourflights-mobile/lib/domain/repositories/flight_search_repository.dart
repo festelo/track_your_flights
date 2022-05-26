@@ -10,6 +10,8 @@ abstract class FlightSearchRepository {
     bool? checkTime,
   });
 
+  Future<List<Flight>> findByFlightaware(String flightAwareLink);
+
   /// Tries to search flight number and returns its description
   Future<FlightPresearchResult?> presearch(String flightNumber);
 }
