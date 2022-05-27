@@ -4,10 +4,11 @@ import { TrackController } from './track.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order, OrderFlight } from 'src/history/history.entities';
 import { HttpModule } from '@nestjs/axios';
+import { Flight } from 'src/flights/flights.entities';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderFlight]),
+    TypeOrmModule.forFeature([OrderFlight, Flight]),
     HttpModule,
   ],
   providers: [TrackService],

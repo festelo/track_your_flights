@@ -184,10 +184,6 @@ export class FlightAwareAdvancedRepository {
   }
 
   private async checkExistanceByHistoryUrl(data: GetByHistoryUrl) {
-    const logPollToken = await this.getLogPollToken(data.historyUrl)
-    if (!logPollToken) {
-      return null;
-    }
     const googleEarthUrl = new URL('https://flightaware.com' + data.historyUrl + '/google_earth')
     const res = await lastValueFrom(this.httpService.get(googleEarthUrl.toString(), {
       headers: { 

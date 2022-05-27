@@ -11,10 +11,13 @@ import { OrderFlight } from 'src/history/history.entities';
 import { Repository } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
+import { Flight } from 'src/flights/flights.entities';
 
 @Injectable()
 export class TrackService {
   constructor(
+    @InjectRepository(Flight)
+    private flightsRepository: Repository<Flight>,
     @InjectRepository(OrderFlight)
     private userFlightsRepository: Repository<OrderFlight>,
     private httpService: HttpService,
@@ -24,8 +27,11 @@ export class TrackService {
     return !!/\/live\/flight\/[\da-zA-Z]+\/history\/[\d]+\/[\d]+Z\/[a-zA-Z]+\/[a-zA-Z]+/g.test(permalink)
   }
 
-  public async saveGeojsonForFlight(flightId: string, permaLink: string) {
-    const kml = await this.getKML(permaLink);
+  public async saveGeojsonForFlight(flightId: string) {
+    const flight = await this.flightsRepository.findOneBy({
+      id: flightId
+    });
+    const kml = await this.getKML(flight.flightAwarePermaLink);
     await this.saveKMLasGeojson(flightId, kml);
   }
 

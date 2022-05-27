@@ -8,10 +8,7 @@ export class TrackController {
   
   @Post('setup')
   async setup(@Body() req: SetupDto) {
-    if(!this.trackService.validateLink(req.permaLink)) {
-      throw new BadRequestException()
-    }
-    await this.trackService.saveGeojsonForFlight(req.flightId, req.permaLink);
+    await this.trackService.saveGeojsonForFlight(req.flightId);
   }
 
   @Get('get')
