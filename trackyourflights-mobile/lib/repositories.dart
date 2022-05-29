@@ -4,11 +4,13 @@ import 'package:trackyourflights/data/http/clients/http_client.dart';
 import 'package:trackyourflights/data/http/clients/token_client.dart';
 import 'package:trackyourflights/data/http/token_storage.dart';
 import 'package:trackyourflights/data/http/uri_resolver.dart';
+import 'package:trackyourflights/data/repositories/airports/airports_repostiory.dart';
 import 'package:trackyourflights/data/repositories/flight_search/flight_search_repository.dart';
 import 'package:trackyourflights/data/repositories/history/history_repository.dart';
 import 'package:trackyourflights/data/repositories/session/session_repository.dart';
 import 'package:trackyourflights/data/repositories/session/token_refresh_handler.dart';
 import 'package:trackyourflights/data/repositories/track/track_repository.dart';
+import 'package:trackyourflights/domain/repositories/airports_repository.dart';
 import 'package:trackyourflights/domain/repositories/flight_search_repository.dart';
 import 'package:trackyourflights/domain/repositories/history_repository.dart';
 import 'package:trackyourflights/domain/repositories/session_repository.dart';
@@ -29,7 +31,7 @@ final prodUriResolver = UriResolver(
   path: 'api',
 );
 
-UriResolver get uriResolver => prodUriResolver;
+UriResolver get uriResolver => debugUriResolver;
 
 final client = HttpClient(
   Client(),
@@ -48,6 +50,11 @@ final SessionRepository sessionRepository = SessionRepositoryImpl(
   uriResolver: uriResolver,
   client: client,
   tokenStorage: tokenStorage,
+);
+
+final AirportsRepository airportsRepository = AirportsRepositoryImpl(
+  uriResolver: uriResolver,
+  client: client,
 );
 
 final FlightSearchRepository flightSearchRepository =

@@ -1,17 +1,15 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './role/roles.guard';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { root } from './paths';
-import { HistoryService } from './history/history.service';
 import { HistoryModule } from './history/history.module';
 import { TrackModule } from './track/track.module';
 import { RolesModule } from './role/roles.module';
 import { ConfigurationModule } from './configuration/configuration.module';
 import { FlightsModule } from './flights/flights.module';
+import { BullModule } from '@nestjs/bull';
+import { AirportsModule } from './airports/airports.module';
 
 @Module({
   imports: [
@@ -29,6 +27,15 @@ import { FlightsModule } from './flights/flights.module';
     }), 
     HistoryModule, 
     FlightsModule,
+    AirportsModule,
+    BullModule.forRoot({ 
+      redis: {
+        username: 'default',
+        password: 'redispw',
+        host: 'localhost',
+        port: 55000,
+      }
+    }),
   ],
 })
 export class AppModule {}

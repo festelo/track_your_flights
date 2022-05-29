@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigurationService } from './configuration/configuration.service';
+import { WsAdapter } from '@nestjs/platform-ws';
 
 import * as moment from "moment";
 import "moment-timezone";
@@ -23,6 +24,7 @@ async function bootstrap() {
     },
   }));
   app.setGlobalPrefix(config.configuration().globalPrefix);
+  app.useWebSocketAdapter(new WsAdapter(app));
   await app.listen(3000);
 }
 bootstrap();

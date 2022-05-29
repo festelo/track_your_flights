@@ -9,7 +9,7 @@ import 'package:trackyourflights/presentation/nonce.dart';
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
 import 'package:trackyourflights/repositories.dart';
 
-class Either<T> {
+class Either<T, TError> {
   const Either.value(this.value) : error = null;
   const Either.error(this.error) : value = null;
   const Either.empty()
@@ -17,7 +17,14 @@ class Either<T> {
         value = null;
 
   final T? value;
-  final dynamic error;
+  final TError? error;
+}
+
+class SearchError {
+  const SearchError(this.text, {this.showSearchRangeSuggestion = false});
+
+  final bool showSearchRangeSuggestion;
+  final String text;
 }
 
 class FlightPresenter extends CompletePresenterStandalone {
@@ -41,6 +48,7 @@ class FlightPresenter extends CompletePresenterStandalone {
   final TextEditingController departureAirportController =
       TextEditingController();
   final FocusNode departureAirportFocusNode = FocusNode();
+
   String _lastDepartureAirport = '';
 
   bool departureTimeSet = false;
@@ -52,8 +60,8 @@ class FlightPresenter extends CompletePresenterStandalone {
   final FocusNode arrivalAirportFocusNode = FocusNode();
   String _lastArrivalAirport = '';
 
-  Either<FlightPresearchResult> flightPresearch = const Either.empty();
-  Either<List<Flight>> foundFlights = const Either.empty();
+  Either<FlightPresearchResult, dynamic> flightPresearch = const Either.empty();
+  Either<List<Flight>, SearchError> foundFlights = const Either.empty();
 
   final Debounce _presearchDebounce = Debounce();
   final Nonce _foundFlightsNonce = Nonce();
@@ -231,14 +239,20 @@ class FlightPresenter extends CompletePresenterStandalone {
       if (flights.isNotEmpty) {
         foundFlights = Either.value(flights);
       } else {
-        foundFlights = const Either.error('Flight not found :(');
+        foundFlights = const Either.error(
+          SearchError(
+            'Flight not found :(',
+            showSearchRangeSuggestion: true,
+          ),
+        );
       }
     } catch (e) {
       if (!_foundFlightsNonce.shouldApplyValue(nonce)) {
         return;
       }
 
-      foundFlights = const Either.error('Oh no, I faced some problems');
+      foundFlights =
+          const Either.error(SearchError('Oh no, I faced some problems'));
     } finally {
       if (_foundFlightsNonce.shouldApplyValue(nonce)) {
         flightLoading = false;

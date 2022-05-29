@@ -1,64 +1,30 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { Flight } from 'src/flights/flights.entities';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Flight, UserFlightSearch } from 'src/flights/flights.entities';
 import { Moment } from 'moment';
-import { FlightAwareRepository } from './flightaware-repository';
-import { FlightAwareAdvancedRepository } from './flightaware-advanced-repository';
+import { FlightAwareRepository } from './repositories/flightaware-repository';
+import { FlightAwareAdvancedRepository } from './repositories/flightaware-advanced-repository';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import { FlightsDbRepository } from './repositories/flights-db-repository';
+import { FlightSearchDbRepository } from './repositories/flight-search-db-repository';
+
+type GetRangeParams = {
+  ident: string, startDate: Moment, endDate: Moment, originItea?: string, destItea?: string
+}
 
 @Injectable()
 export class FlightsService {
   constructor(
-    private httpService: HttpService,
-    @InjectRepository(Flight)
-    private flightsRepository: Repository<Flight>,
+    @InjectQueue('flights') private flightsQueue: Queue,
+    private flightsDbRepository: FlightsDbRepository,
+    private flightAwareRepository: FlightAwareRepository,
+    private flightAwareAdvancedRepository: FlightAwareAdvancedRepository,
+    private flightSearchDbRepository: FlightSearchDbRepository,
   ) {}
-
-  private flightAwareRepository = new FlightAwareRepository(this.httpService);
-  private flightAwareAdvancedRepository = new FlightAwareAdvancedRepository(this.httpService);
 
   async searchFlights(q: string) { 
     return await this.flightAwareRepository.search(q);
-  }
-
-  private async saveFlightsToDb(flights: Flight[]) {
-    if (flights.length == 0) return;
-
-    const flightsMap: Record<string, Record<string, Flight>> = {};
-
-    const paramsPlaceholders = [];
-    for (let counter = 0, i = 0; i < flights.length; i++, counter += 2) {
-      paramsPlaceholders.push(`(:p${counter}, :p${counter + 1})`)
-      
-      flightsMap[flights[i].ident] ??= {}
-      flightsMap[flights[i].ident][flights[i].indexingDate.toISOString()] = flights[i]
-    }
-
-    const paramsPlaceholdersString = paramsPlaceholders.join(',')
-
-    const paramsArray = flights.flatMap((e) => ([e.ident, e.indexingDate ]))
-    const paramsObj = {}
-    for (let i = 0; i < paramsArray.length; i++) {
-      paramsObj['p' + i] = paramsArray[i];
-    }
-
-
-    const databaseFlights = await this.flightsRepository
-      .createQueryBuilder()
-      .where(
-        `(ident, indexingDate) in ( VALUES ${paramsPlaceholdersString})`, 
-        paramsObj
-      )
-      .getMany()
-
-    for (const flight of databaseFlights) {
-      const flightToUpdate = flightsMap[flight.ident] && flightsMap[flight.ident][flight.indexingDate.toISOString()];
-      if (!flightToUpdate) continue;
-      flightToUpdate.id = flight.id;
-    }
-
-    await this.flightsRepository.save(flights);
   }
 
   
@@ -79,13 +45,13 @@ export class FlightsService {
         }
       })
     }
-    await this.saveFlightsToDb(flights);
+    await this.flightsDbRepository.save(flights);
     return flights;
   }
 
   async getFlightBasic(ident: string, date?: Moment, checkTime: boolean = false) {
     const flights = await this.flightAwareRepository.get(ident)
-    await this.saveFlightsToDb(flights);
+    await this.flightsDbRepository.save(flights);
     
     return flights.filter((e) => {
       if (!date) return true;
@@ -102,38 +68,8 @@ export class FlightsService {
     });
   }
 
-  async getFlightCached(ident: string, date?: Moment, originItea?: string, destItea?: string, checkTime: boolean = false) {
-    return await this.flightsRepository.find({
-      where: {
-        ident: ident,
-        indexingDate: date ? Between(
-          checkTime 
-            ? date.startOf('minute').toDate()
-            : date.startOf('day').toDate(),
-          checkTime 
-            ? date.endOf('minute').toDate()
-            : date.endOf('day').toDate(),
-        ) : undefined,
-        origin: originItea ? {
-          iata: originItea
-        } : undefined,
-        destination: destItea ? {
-          iata: destItea
-        } : undefined,
-      }
-    })
-  }
-
-  async getFlightCachedByFlightawareLink(flightAwareLink: string) {
-    return await this.flightsRepository.find({
-      where: {
-        flightAwarePermaLink: flightAwareLink,
-      }
-    })
-  }
-
   async getFlight(ident: string, dateTime: Moment, originItea?: string, destItea?: string, checkTime: boolean = false) {
-    let res = await this.getFlightCached(ident, dateTime, originItea, destItea, checkTime);
+    let res = await this.flightsDbRepository.get(ident, dateTime, originItea, destItea, checkTime);
     if (res.length == 0) {
       res = await this.getFlightBasic(ident, dateTime.clone(), checkTime);
     } if (res.length == 0) {
@@ -143,29 +79,91 @@ export class FlightsService {
   }
 
   async getFlightByFlightaware(flightAwareLink: string) {
-    let res = await this.getFlightCachedByFlightawareLink(flightAwareLink);
+    let res = await this.flightsDbRepository.getByFlightawareLink(flightAwareLink);
     if (res.length == 0) {
       res = await this.getFlightAdvanced(flightAwareLink);
     }
     return res;
   }
 
-  async parseAllTimes(ident: string, dateTime: Moment, originItea?: string, destItea?: string) {
-    while (true) {
-      try {
-        console.log(dateTime.toISOString(false))
-        const exists = await this.flightAwareAdvancedRepository.checkExistance({ dateTime: dateTime.clone(), routeInfo: { ident, originItea: originItea, destItea: destItea}});
-        if (exists) {
-          return await this.flightAwareAdvancedRepository.get({ dateTime: dateTime.clone(), routeInfo: { ident, originItea: originItea, destItea: destItea}});
-        }
-        dateTime.add(1, 'minute')
-        if (dateTime.hours() == 0 && dateTime.minutes() == 0) {
-          break;
-        }
-      } catch (e) {
-        console.log(e);
+  private getRangeJobId = (params: GetRangeParams) => 
+    JSON.stringify({
+      ident: params.ident,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      originItea: params.originItea,
+      destItea: params.destItea
+    });
+
+  async getRangeStart(userId: string, params: GetRangeParams & {restart: boolean}) {
+    let oldJob = await this.flightsQueue.getJob(
+      this.getRangeJobId(params));
+    if (oldJob != null && params.restart) {
+      if (await oldJob.isActive()) {
+        await oldJob.update(
+          { ...params, cancelled: true }
+        )
+        await oldJob.finished().catch(() => {})
+      }
+      await oldJob.remove()
+      oldJob = null;
+    }
+    const job = await this.flightsQueue.add(
+      { ...params },
+      { jobId: this.getRangeJobId(params) },
+    );
+    await this.flightSearchDbRepository.save(new UserFlightSearch({
+      searchId: job.id.toString(),
+      userId: userId,
+      ...params,
+      id: null,
+    }))
+    return {
+      id: job.id,
+      status: oldJob == null ? 'created' : 'already created'
+    }
+  }
+
+  async getRangeStatus(params: GetRangeParams) {
+    const job = await this.flightsQueue.getJob(
+      this.getRangeJobId(params));
+    if (job == null) return { state: 'not found' };
+    const state = await job.getState()
+    const progress = await job.progress()
+    if (job.failedReason != null) {
+      return {
+        state,
+        progress,
+        reason: job.failedReason,
       }
     }
-    return [];
+    if (state == 'completed') {
+      return {
+        state,
+        progress,
+        data: job.returnvalue,
+      }
+    }
+    return {
+      state,
+      progress,
+    }
+  }
+
+  async getRangeStop(params: GetRangeParams) {
+    const job = await this.flightsQueue.getJob(
+      this.getRangeJobId(params));
+
+    await job.update(
+      { ...params, cancelled: true }
+    )
+  }
+
+  async getBySearchId(searchId: string) {
+    return await this.flightSearchDbRepository.getBySearchId(searchId);
+  }
+
+  async getByUserId(userId: string) {
+    return await this.flightSearchDbRepository.getByUserId(userId);
   }
 }

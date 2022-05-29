@@ -1,10 +1,10 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
-import { FlightApiDto } from './flights.models';
-import { Flight } from './flights.entities';
+import { FlightApiDto } from './flightaware-repository.models';
+import { Flight } from '../flights.entities';
 import { dateFromEpoch } from 'src/utils';
-import { getPathFromHistoryLink } from './flightaware-uri-utils';
+import { getPathFromHistoryLink } from '../flightaware-uri-utils';
 
 @Injectable()
 export class FlightAwareRepository {

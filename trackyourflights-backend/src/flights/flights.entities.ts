@@ -1,5 +1,40 @@
 import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 
+@Entity()
+export class UserFlightSearch {
+  constructor(entity: Required<UserFlightSearch> |  {id: string}) {
+     Object.assign(this, entity);
+  }
+
+  @PrimaryGeneratedColumn()
+  id?: string;
+
+  @Column()
+  userId: string
+
+  @Column()
+  searchId: string
+
+  @Column()
+  ident: string;
+  
+  @Column()
+  startDate: Date;
+
+  @Column()
+  endDate: Date;
+
+  @Column({
+    nullable: true,
+  })
+  originItea: string;
+
+  @Column({
+    nullable: true,
+  })
+  destItea: string;
+}
+
 export class Waypoint {
   @Column({
     nullable: true,

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:trackyourflights/domain/entities/airport.dart';
 
 import 'package:trackyourflights/presentation/date_formats.dart';
 import 'package:trackyourflights/presentation/pages/add_order/presenters/flight_presenter.dart';
+import 'package:trackyourflights/presentation/pages/add_order/widgets/airport_field.dart';
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
 import 'package:trackyourflights/presentation/widgets/button_styled_as_text_field.dart';
+import 'package:trackyourflights/presentation/widgets/search_pop_up.dart';
 
 class FlightForm extends PresenterWidget {
   const FlightForm({
@@ -150,48 +153,26 @@ class FlightFormState extends PresenterState<FlightForm> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: AnimatedBuilder(
-            animation: presenter.departureAirportFocusNode,
-            builder: (ctx, _) => TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Departure Airport',
-                hintText: presenter.selectedFlight?.origin.iata ?? 'DDDD',
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-                suffixIcon: presenter.departureAirportFocusNode.hasFocus &&
-                        presenter.flightDate != null &&
-                        presenter.flightPresearch.value != null
-                    ? InkWell(
-                        child: const Icon(Icons.done),
-                        onTap: () => FocusScope.of(context).unfocus(),
-                      )
-                    : null,
-              ),
-              focusNode: presenter.departureAirportFocusNode,
-              controller: presenter.departureAirportController,
-            ),
+          child: AirportField(
+            labelText: 'Departure Airport',
+            showConfirmButton: presenter.flightDate != null &&
+                presenter.flightPresearch.value != null,
+            focusNode: presenter.departureAirportFocusNode,
+            controller: presenter.departureAirportController,
+            hintText: 'DDDD',
+            waypoint: presenter.selectedFlight?.origin,
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: AnimatedBuilder(
-            animation: presenter.arrivalAirportFocusNode,
-            builder: (ctx, _) => TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Arrival Airport',
-                hintText: presenter.selectedFlight?.destination.iata ?? 'AAAA',
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-                suffixIcon: presenter.arrivalAirportFocusNode.hasFocus &&
-                        presenter.flightDate != null &&
-                        presenter.flightPresearch.value != null
-                    ? InkWell(
-                        child: const Icon(Icons.done),
-                        onTap: () => FocusScope.of(context).unfocus(),
-                      )
-                    : null,
-              ),
-              focusNode: presenter.arrivalAirportFocusNode,
-              controller: presenter.arrivalAirportController,
-            ),
+          child: AirportField(
+            labelText: 'Arrival Airport',
+            showConfirmButton: presenter.flightDate != null &&
+                presenter.flightPresearch.value != null,
+            focusNode: presenter.arrivalAirportFocusNode,
+            controller: presenter.arrivalAirportController,
+            hintText: 'AAAA',
+            waypoint: presenter.selectedFlight?.destination,
           ),
         ),
       ],
@@ -249,13 +230,35 @@ class FlightFormState extends PresenterState<FlightForm> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  presenter.foundFlights.error!,
+                  presenter.foundFlights.error!.text,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
               ),
+              if (presenter.foundFlights.error!.showSearchRangeSuggestion &&
+                  !presenter.findByFlightAwareLink)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: InkWell(
+                    onTap: () => presenter.findByFlightAwareLink =
+                        !presenter.findByFlightAwareLink,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        'Try search flight by time range',
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ] else if (presenter.foundFlights.value?.isNotEmpty ?? false) ...[
               const SizedBox(height: 12),
               Padding(

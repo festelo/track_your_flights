@@ -1,8 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:trackyourflights/presentation/pages/home/home_page.dart';
 import 'package:trackyourflights/presentation/pages/login/login_page.dart';
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
 import 'package:trackyourflights/repositories.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +35,23 @@ class App extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      supportedLocales: const [
+        // Locale('ru', 'RU'),
+        // Locale('en', 'RU'),
+        Locale('en', 'GB'),
+      ],
+      scrollBehavior: MaterialScrollBehavior().copyWith(
+        dragDevices: {
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.touch,
+          PointerDeviceKind.stylus,
+          PointerDeviceKind.unknown
+        },
+      ),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
       home: authorized ? const HomePage() : const LoginPage(),
     );
   }

@@ -1,11 +1,11 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
-import { Flight } from './flights.entities';
-import { AdvancedResponse, FlightRoot } from './flights-advanced.models';
+import { Flight } from '../flights.entities';
+import { AdvancedResponse, FlightRoot } from './flightaware-advanced-repository.models';
 import * as assert from 'assert';
 import { dateFromEpoch } from 'src/utils';
-import { getIdentFromHistoryLink, getPathFromHistoryLink } from './flightaware-uri-utils';
+import { getIdentFromHistoryLink, getPathFromHistoryLink } from '../flightaware-uri-utils';
 
 type GetByParams = {
   historyUrl: string

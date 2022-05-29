@@ -29,6 +29,8 @@ dependencies:
   latlong2: ^0.8.1
   mapbox_gl: ^0.15.0
   equatable: ^2.0.3
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
