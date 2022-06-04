@@ -1,7 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:trackyourflights/domain/entities/flight.dart';
 import 'package:trackyourflights/domain/entities/price.dart';
 
-class Order {
+class Order with EquatableMixin {
   const Order({
     required this.id,
     required this.price,
@@ -19,4 +20,8 @@ class Order {
   final String? comment;
   final String? link;
   final String? seller;
+
+  @override
+  List<Object?> get props =>
+      [id, price, flights, orderedAt, comment, link, seller];
 }

@@ -13,7 +13,10 @@ class HomePageDesktop extends StatelessWidget {
           Expanded(
             child: MapBar(),
           ),
-          OrdersBar(),
+          SizedBox(
+            width: 500,
+            child: OrdersBar(),
+          ),
         ],
       ),
     );

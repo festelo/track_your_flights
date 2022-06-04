@@ -13,5 +13,6 @@ import { Flight } from 'src/flights/flights.entities';
   ],
   providers: [TrackService],
   controllers: [TrackController],
+  exports: [TrackService]
 })
 export class TrackModule {}

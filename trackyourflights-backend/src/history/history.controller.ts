@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Post, Request } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Post, Request } from '@nestjs/common';
 import { HistoryService } from './history.service';
-import { OrderDto } from './history.dto';
+import { OrderDto, UpdateOrderFlightDto } from './history.dto';
 import { Order, OrderFlight } from './history.entities';
-import { Flight } from 'src/flights/flights.entities';
+import { Flight, UserFlightSearch } from 'src/flights/flights.entities';
 
 @Controller('/history')
 export class HistoryController {
@@ -23,8 +23,11 @@ export class HistoryController {
 
     const flights = body.flights.map((e) => new OrderFlight({
       id: null,
-      flight: new Flight({
+      flight: e.flightId == null ? null : new Flight({
         id: e.flightId,
+      }),
+      flightSearch: e.searchId == null ? null : new UserFlightSearch({
+        id: e.searchId
       }),
       order: order,
       personsCount: e.personsCount
@@ -33,6 +36,25 @@ export class HistoryController {
     order.flights = flights;
 
     return this.historyService.add(order);
+  }
+
+  @Post('update-flight')
+  async updateFlight(@Body() body: UpdateOrderFlightDto) {
+    const flight = new OrderFlight({
+      id: body.oldFlightId,
+      flight: body.flight.flightId == null ? null : new Flight({
+        id: body.flight.flightId,
+      }),
+      flightSearch: body.flight.searchId == null ? null : new UserFlightSearch({
+        id: body.flight.searchId
+      }),
+      order: new Order({
+        id: body.orderId,
+      }),
+      personsCount: body.flight.personsCount
+    });
+    const res = await this.historyService.updateOrderFlight(flight)
+    if (!res) throw new NotFoundException();
   }
 
   @Get('get')

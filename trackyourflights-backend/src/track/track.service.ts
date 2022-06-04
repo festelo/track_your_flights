@@ -28,8 +28,8 @@ export class TrackService {
   }
 
   public async saveGeojsonForFlight(flightId: string) {
-    const flight = await this.flightsRepository.findOneBy({
-      id: flightId
+    const flight = await this.flightsRepository.findOne({
+      where: {id: flightId},
     });
     const kml = await this.getKML(flight.flightAwarePermaLink);
     await this.saveKMLasGeojson(flightId, kml);
@@ -58,6 +58,11 @@ export class TrackService {
       throw new BadRequestException(`Geojson for ${flightId} doesnt exist`);
     }
     return resolvedPath; 
+  }
+  
+  public trackExists(flightId: string) {
+    const path = this.resolvePath(flightId, { checkForExistance: false })
+    return checkIfFileOrDirectoryExists(path);
   }
 
   public getGeojson(flightId: string) { 

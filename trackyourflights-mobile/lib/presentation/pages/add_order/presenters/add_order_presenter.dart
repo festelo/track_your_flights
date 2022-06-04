@@ -35,6 +35,11 @@ class AddOrderPresenter extends CompletePresenterStandalone {
     FlightPresenter(),
   ];
 
+  final List<ScrollController> scrollControllers = [
+    ScrollController(),
+    ScrollController(),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -45,8 +50,6 @@ class AddOrderPresenter extends CompletePresenterStandalone {
     flightPresenter.addListener(() => notify());
     flightPresenter.initState();
   }
-
-  void unsubscribeFromFlightPresenter() {}
 
   Future<void> selectOrderDate() async {
     final date = await showDatePicker(
@@ -68,11 +71,17 @@ class AddOrderPresenter extends CompletePresenterStandalone {
 
   void addFlight() {
     flightPresenters.add(FlightPresenter());
+    scrollControllers.add(ScrollController());
     attachFlightPresenter(flightPresenters.last);
     notify();
   }
 
   void removeFlight(FlightPresenter presenter) {
+    final index = flightPresenters.indexOf(presenter);
+    if (index != -1) {
+      final controller = scrollControllers.removeAt(index + 1);
+      controller.dispose();
+    }
     flightPresenters.remove(presenter);
     if (currentTab > flightPresenters.length) {
       currentTab--;
@@ -94,7 +103,8 @@ class AddOrderPresenter extends CompletePresenterStandalone {
         buttonKey.currentState?.addError(error);
         return;
       }
-      final flights = flightPresenters.map((e) => e.flight).toList();
+      final flights =
+          await Future.wait(flightPresenters.map((e) => e.flight()));
       final order = Order(
         id: uuid,
         price: Price(
@@ -125,6 +135,9 @@ class AddOrderPresenter extends CompletePresenterStandalone {
     commentController.dispose();
     linkController.dispose();
     sellerController.dispose();
+    for (var e in scrollControllers) {
+      e.dispose();
+    }
     for (var e in flightPresenters) {
       e.dispose();
     }

@@ -10,8 +10,8 @@ import { FlightsDbRepository } from "./repositories/flights-db-repository";
 
 export interface FlightJob {
   ident: string;
-  startDate: Moment;
-  endDate: Moment;
+  aproxDate: Moment;
+  minutesRange: number;
   originItea?: string;
   destItea?: string;
   cancelled: boolean;
@@ -30,7 +30,7 @@ export interface FlightSearchStartedEvent {
 export interface FlightSearchProgressEvent {
   id: string;
   status: 'progress';
-  data: any
+  data: number
 }
 
 export interface FlightSearchFailedEvent {
@@ -93,35 +93,40 @@ export class FlightsConsumer {
   
   @Process()
   async search(job: Job<FlightJob>) {
-    job.data.endDate = moment(job.data.endDate)
-    job.data.startDate = moment(job.data.startDate)
-    const dateTime = job.data.startDate
     let errorCounter = 0;
-    while (true) {
+    const startMinute = Math.floor((job.progress() ?? 0) * job.data.minutesRange);
+    for (let i = startMinute; i < job.data.minutesRange; i++) {
       job = await job.queue.getJob(job.id)
       if (job.data.cancelled ) {
         throw new Error('cancelled')
       }
+      job.data.aproxDate = moment(job.data.aproxDate)
+
+      const dateTime = job.data.aproxDate.clone().add(
+        i % 2 == 0 
+          ? Math.floor(i / 2) 
+          : Math.floor((i / 2)) * -1, 
+        'minutes'
+      )
       
       try {
-        job.progress(dateTime);
+        await job.progress(Math.floor(i / job.data.minutesRange * 100));
         const exists = await this.flightAwareAdvancedRepository.checkExistance({ 
           dateTime: dateTime.clone(), 
           routeInfo: { ...job.data }
         });
         if (exists) {
-          const flight = await this.flightAwareAdvancedRepository.get({ 
+          const flights = await this.flightAwareAdvancedRepository.get({ 
             dateTime: dateTime.clone(), 
             routeInfo: { ...job.data }
           });
-          this.flightsDbRepository.save(flight)
-          return flight
+          if (flights.length != 0) {
+            await this.flightsDbRepository.save(flights)
+            return flights;
+          }
         }
         dateTime.add(1, 'minute')
         errorCounter = 0;
-        if (dateTime.isSameOrAfter(job.data.endDate)) {
-          break;
-        }
       } catch (e) {
         console.log(e);
         errorCounter++
@@ -129,6 +134,9 @@ export class FlightsConsumer {
           throw e;
         }
       }
+    }
+    if (job.data.cancelled ) {
+      throw new Error('cancelled')
     }
     return [];
   }

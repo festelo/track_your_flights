@@ -1,4 +1,3 @@
-import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { Flight, UserFlightSearch } from 'src/flights/flights.entities';
 import { Moment } from 'moment';
@@ -10,7 +9,7 @@ import { FlightsDbRepository } from './repositories/flights-db-repository';
 import { FlightSearchDbRepository } from './repositories/flight-search-db-repository';
 
 type GetRangeParams = {
-  ident: string, startDate: Moment, endDate: Moment, originItea?: string, destItea?: string
+  ident: string, aproxDate: Moment, originItea?: string, destItea?: string, minutesRange: 720,
 }
 
 @Injectable()
@@ -31,11 +30,24 @@ export class FlightsService {
   async getFlightAdvanced(req: {ident: string, dateTime: Moment, originItea?: string, destItea?: string} | string) {
     let flights: Flight[];
     if (typeof req === 'string' || req instanceof String) {
+      const exists = await this.flightAwareAdvancedRepository.checkExistance({
+        historyUrl: req as string,
+      })
+      if (!exists) return [];
       flights = await this.flightAwareAdvancedRepository.get({
         historyUrl: req as string,
       })
     }
     else { 
+      const exists = await this.flightAwareAdvancedRepository.checkExistance({
+        dateTime: req.dateTime,
+        routeInfo: {
+          ident: req.ident,
+          destItea: req.destItea,
+          originItea: req.originItea,
+        }
+      })
+      if (!exists) return [];
       flights = await this.flightAwareAdvancedRepository.get({
         dateTime: req.dateTime,
         routeInfo: {
@@ -89,8 +101,8 @@ export class FlightsService {
   private getRangeJobId = (params: GetRangeParams) => 
     JSON.stringify({
       ident: params.ident,
-      startDate: params.startDate,
-      endDate: params.endDate,
+      aproxDate: params.aproxDate,
+      minutesRange: params.minutesRange,
       originItea: params.originItea,
       destItea: params.destItea
     });
@@ -98,7 +110,7 @@ export class FlightsService {
   async getRangeStart(userId: string, params: GetRangeParams & {restart: boolean}) {
     let oldJob = await this.flightsQueue.getJob(
       this.getRangeJobId(params));
-    if (oldJob != null && params.restart) {
+    if (oldJob != null && oldJob.failedReason != null && params.restart) {
       if (await oldJob.isActive()) {
         await oldJob.update(
           { ...params, cancelled: true }
@@ -107,26 +119,36 @@ export class FlightsService {
       }
       await oldJob.remove()
       oldJob = null;
+    } else if (oldJob?.failedReason != null) {
+      await oldJob.remove()
+      oldJob = null;
     }
     const job = await this.flightsQueue.add(
       { ...params },
-      { jobId: this.getRangeJobId(params) },
+      { jobId: this.getRangeJobId(params), attempts: 3 },
     );
-    await this.flightSearchDbRepository.save(new UserFlightSearch({
+    const userFlightSearch = new UserFlightSearch({
       searchId: job.id.toString(),
       userId: userId,
       ...params,
       id: null,
-    }))
+    });
+    await this.flightSearchDbRepository.save(userFlightSearch);
     return {
-      id: job.id,
-      status: oldJob == null ? 'created' : 'already created'
+      ...userFlightSearch,
+      userId: undefined,
+      searchId: undefined,
+      state: await job.getState(),
+      progress: await job.progress(),
+      error: job.failedReason, 
+      data: job.returnvalue ?? undefined,
+      creationStatus: oldJob == null ? 'started new' : 'reused'
     }
   }
 
-  async getRangeStatus(params: GetRangeParams) {
-    const job = await this.flightsQueue.getJob(
-      this.getRangeJobId(params));
+  async getRangeStatus(id: string) {
+    const search = await this.flightSearchDbRepository.getById(id);
+    const job = await this.flightsQueue.getJob(search.searchId);
     if (job == null) return { state: 'not found' };
     const state = await job.getState()
     const progress = await job.progress()
@@ -141,7 +163,7 @@ export class FlightsService {
       return {
         state,
         progress,
-        data: job.returnvalue,
+        data: job.returnvalue ?? undefined,
       }
     }
     return {
@@ -150,20 +172,39 @@ export class FlightsService {
     }
   }
 
-  async getRangeStop(params: GetRangeParams) {
-    const job = await this.flightsQueue.getJob(
-      this.getRangeJobId(params));
+  async getRangeStop(id: string) {
+    const search = await this.flightSearchDbRepository.getById(id);
+
+    const job = await this.flightsQueue.getJob(search.searchId);
 
     await job.update(
-      { ...params, cancelled: true }
+      { cancelled: true }
     )
   }
 
+  async getByRangeRetry(id: string) {
+    const search = await this.flightSearchDbRepository.getById(id);
+    const job = await this.flightsQueue.getJob(search.searchId);
+    await job.retry()
+  }
+
   async getBySearchId(searchId: string) {
-    return await this.flightSearchDbRepository.getBySearchId(searchId);
+    return await this.flightSearchDbRepository.getByJobId(searchId);
   }
 
   async getByUserId(userId: string) {
-    return await this.flightSearchDbRepository.getByUserId(userId);
+    const searches = await this.flightSearchDbRepository.getByUserId(userId);
+    const searchesById = new Map(searches.map((s) => [s.searchId, s]))
+    const jobs = await Promise.all(searches.map((s) => this.flightsQueue.getJob(s.searchId)))
+    const result = await Promise.all(jobs.map(async (j) => ({
+      ...searchesById.get(j.id.toString()),
+      searchId: undefined,
+      userId: undefined,
+      state: await j.getState(),
+      progress: await j.progress(),
+      data: j.returnvalue ?? undefined,
+      error: j.failedReason,
+    })))
+    return result;
   }
 }

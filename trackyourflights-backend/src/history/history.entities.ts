@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsNumber } from "class-validator";
-import { Flight } from "src/flights/flights.entities";
+import { Flight, UserFlightSearch } from "src/flights/flights.entities";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 export class Price {
@@ -14,7 +14,7 @@ export class Price {
 
 @Entity()
 export class Order {
-  constructor(entity: Required<Order>) {
+  constructor(entity: Required<Order> |  {id: string}) {
       Object.assign(this, entity);
   }
 
@@ -63,9 +63,14 @@ export class OrderFlight {
   @ManyToOne(() => Order, (order) => order.flights)
   order: Order;
 
-  @OneToOne(() => Flight)
+  @OneToOne(() => Flight, {nullable: true})
   @JoinColumn()
-  flight: Flight;
+  flight?: Flight;
+
+
+  @OneToOne(() => UserFlightSearch, {nullable: true})
+  @JoinColumn()
+  flightSearch?: UserFlightSearch;
 
   @Column()
   personsCount: number;

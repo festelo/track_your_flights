@@ -15,6 +15,7 @@ abstract class PresenterStandalone extends ChangeNotifier
     implements BasePresenter {
   late final Ref _ref;
   Ref get ref => _ref;
+  bool _disposed = false;
 
   void load(AutoDisposeChangeNotifierProviderRef ref) {
     _ref = ref;
@@ -35,7 +36,14 @@ abstract class PresenterStandalone extends ChangeNotifier
   @protected
   void notify([void Function()? fun]) {
     fun?.call();
+    if (_disposed) return;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }
 

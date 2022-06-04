@@ -13,12 +13,14 @@ import 'presenters/add_order_presenter.dart';
 class AddOrderDialog extends ConsumerWidget {
   const AddOrderDialog({Key? key}) : super(key: key);
 
-  Widget orderDetailsTab() {
+  Widget orderDetailsTab({
+    required ScrollController controller,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: const [
-        SizedBox(height: 24),
-        Padding(
+      children: [
+        const SizedBox(height: 24),
+        const Padding(
           padding: EdgeInsets.symmetric(horizontal: 12),
           child: Text(
             'Enter your flight order info',
@@ -27,10 +29,11 @@ class AddOrderDialog extends ConsumerWidget {
             ),
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Expanded(
           child: SingleChildScrollView(
-            child: OrderInfoForm(),
+            controller: controller,
+            child: const OrderInfoForm(),
           ),
         )
       ],
@@ -40,6 +43,7 @@ class AddOrderDialog extends ConsumerWidget {
   Widget flightTab({
     required int flightNumber,
     required FlightPresenter presenter,
+    required ScrollController controller,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -53,6 +57,7 @@ class AddOrderDialog extends ConsumerWidget {
         const SizedBox(height: 8),
         Expanded(
           child: SingleChildScrollView(
+            controller: ScrollController(),
             child: FlightForm(presenter: presenter),
           ),
         )
@@ -83,12 +88,16 @@ class AddOrderDialog extends ConsumerWidget {
                     child: IndexedStack(
                       index: presenter.currentTab,
                       children: [
-                        orderDetailsTab(),
+                        orderDetailsTab(
+                          controller: presenter.scrollControllers.first,
+                        ),
                         for (final entry
                             in presenter.flightPresenters.asMap().entries)
                           flightTab(
                             flightNumber: entry.key,
                             presenter: entry.value,
+                            controller:
+                                presenter.scrollControllers[entry.key + 1],
                           ),
                       ],
                     ),
@@ -114,30 +123,24 @@ class AddOrderDialog extends ConsumerWidget {
                               for (final entry in presenter.flightPresenters
                                   .asMap()
                                   .entries) ...[
-                                ValueListenableBuilder<TextEditingValue>(
-                                  valueListenable:
-                                      entry.value.flightNumberController,
-                                  builder: (context, value, _) => ListTile(
-                                    leading: const Icon(Icons.flight),
-                                    selected:
-                                        presenter.currentTab == entry.key + 1,
-                                    title: Text(
-                                      value.text.isEmpty
-                                          ? 'Flight ${entry.key + 1}'
-                                          : value.text,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                ListTile(
+                                  leading: const Icon(Icons.flight),
+                                  selected:
+                                      presenter.currentTab == entry.key + 1,
+                                  title: Text(
+                                    'Flight ${entry.key + 1}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  onTap: () =>
+                                      presenter.currentTab = entry.key + 1,
+                                  trailing: IconButton(
+                                    icon: const Icon(
+                                      Icons.close,
                                     ),
-                                    onTap: () =>
-                                        presenter.currentTab = entry.key + 1,
-                                    trailing: IconButton(
-                                      icon: const Icon(
-                                        Icons.close,
-                                      ),
-                                      iconSize: 18,
-                                      onPressed: () =>
-                                          presenter.removeFlight(entry.value),
-                                    ),
+                                    iconSize: 18,
+                                    onPressed: () =>
+                                        presenter.removeFlight(entry.value),
                                   ),
                                 ),
                               ]

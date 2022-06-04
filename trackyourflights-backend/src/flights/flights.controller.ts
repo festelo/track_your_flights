@@ -12,17 +12,12 @@ class GetDto {
   public checkTime: string
 }
 
-class GetRangeDto {
+class StartRangeSearchDto {
   @IsDateString()
-  public startDate: string
-  @IsDateString()
-  public endDate: string
+  public aproxDate: string
   public ident: string
   public originItea?: string
   public destItea?: string
-}
-
-class GetRangeDtoStart extends GetRangeDto {
   @IsBoolean()
   public restart: boolean
 }
@@ -52,47 +47,32 @@ export class FlightsController {
     }
     return this.flightsService.getFlightByFlightaware(match[1]);
   }
-  
-  private verifyRangeDate(startDate: moment.Moment, endDate: moment.Moment) {
-    const range = endDate.diff(startDate, 'h')
-    if (startDate.isSameOrAfter(endDate)) {
-      throw new BadRequestException('End date must be after start date')
-    }
-    if (range > 24) {
-      throw new BadRequestException('24 hours range max')
-    }
-  }
 
   @Post('get/range')
-  async getRangeStart(@Request() req, @Body() query: GetRangeDtoStart) {
-    const startDate = moment(query.startDate)
-    const endDate = moment(query.endDate)
-    this.verifyRangeDate(startDate, endDate);
+  async getRangeStart(@Request() req, @Body() query: StartRangeSearchDto) {
+    const aproxDate = moment(query.aproxDate)
 
-    return this.flightsService.getRangeStart(req.user.id, {...query, startDate, endDate});
+    return this.flightsService.getRangeStart(req.user.id, {...query, aproxDate, minutesRange: 720});
   }
 
   @Get('get/range')
-  async getRangeStatus(@Query() query: GetRangeDto) {
-    const startDate = moment(query.startDate)
-    const endDate = moment(query.endDate)
-    this.verifyRangeDate(startDate, endDate);
-
-    return this.flightsService.getRangeStatus({...query, startDate, endDate});
+  async getRangeStatus(@Query('id') id: string) {
+    return this.flightsService.getRangeStatus(id);
   }
 
   @Get('get/range/list')
   async getRangeList(@Request() req) {
     return this.flightsService.getByUserId(req.user.id);
   }
+
+  @Get('get/range/retry')
+  async getRangeRetry(@Query('id') id: string) {
+    return this.flightsService.getByRangeRetry(id);
+  }
   
 
-  @Delete('get/range')
-  async getRangeStop(@Query() query: GetRangeDto) {
-    const startDate = moment(query.startDate)
-    const endDate = moment(query.endDate)
-    this.verifyRangeDate(startDate, endDate);
-
-    return this.flightsService.getRangeStop({...query, startDate, endDate});
+  @Get('get/range/stop')
+  async getRangeStop(@Query('id') id: string) {
+    return this.flightsService.getRangeStop(id);
   }
 }

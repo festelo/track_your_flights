@@ -68,7 +68,7 @@ class FlightSearchRepositoryImpl implements FlightSearchRepository {
       ]),
     );
     final resJson = jsonDecode(res.body) as List;
-    final mappedRes = resJson.map(FlightSearchMappers.fromJson).toList();
+    final mappedRes = resJson.map(FlightPresearchMappers.fromJson).toList();
     final model = mappedRes.firstOrNull;
     if (model == null) return null;
     return FlightPresearchResult(

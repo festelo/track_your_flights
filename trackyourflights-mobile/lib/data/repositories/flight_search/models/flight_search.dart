@@ -1,5 +1,5 @@
-class FlightSearch {
-  const FlightSearch({
+class FlightPresearch {
+  const FlightPresearch({
     required this.description,
     required this.ident,
   });

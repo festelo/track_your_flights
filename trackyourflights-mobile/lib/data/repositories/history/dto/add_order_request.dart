@@ -1,3 +1,6 @@
+import 'order_flight_dto.dart';
+import 'price_dto.dart';
+
 class AddOrderRequest {
   const AddOrderRequest({
     required this.price,
@@ -10,7 +13,7 @@ class AddOrderRequest {
 
   final PriceDto price;
   final DateTime orderedAt;
-  final List<AddOrderFlightDto> flights;
+  final List<OrderFlightDto> flights;
   final String? comment;
   final String? link;
   final String? seller;
@@ -23,39 +26,6 @@ class AddOrderRequest {
       'comment': comment,
       'link': link,
       'seller': seller,
-    };
-  }
-}
-
-class PriceDto {
-  const PriceDto({
-    required this.amount,
-    required this.currency,
-  });
-
-  final double amount;
-  final String currency;
-
-  Map<String, dynamic> toMap() {
-    return {
-      'amount': amount,
-      'currency': currency,
-    };
-  }
-}
-
-class AddOrderFlightDto {
-  const AddOrderFlightDto({
-    required this.flightId,
-    required this.personsCount,
-  });
-  final String flightId;
-  final int personsCount;
-
-  Map<String, dynamic> toMap() {
-    return {
-      'flightId': flightId,
-      'personsCount': personsCount,
     };
   }
 }

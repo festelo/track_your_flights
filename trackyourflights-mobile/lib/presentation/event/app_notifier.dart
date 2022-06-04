@@ -12,4 +12,8 @@ class AppNotifier {
   }
 }
 
-class OrderAddedEvent {}
+class OrdersModifiedEvent {}
+
+class OrderAddedEvent extends OrdersModifiedEvent {}
+
+class OrderChangedEvent extends OrdersModifiedEvent {}

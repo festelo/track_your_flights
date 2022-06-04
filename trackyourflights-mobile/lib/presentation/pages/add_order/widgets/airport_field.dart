@@ -12,8 +12,8 @@ class AirportField extends StatefulWidget {
     required this.labelText,
     this.hintText,
     this.waypoint,
-    required this.showConfirmButton,
-    required this.focusNode,
+    this.showConfirmButton = false,
+    this.focusNode,
     required this.controller,
   }) : super(key: key);
 
@@ -21,7 +21,7 @@ class AirportField extends StatefulWidget {
   final String? hintText;
   final Waypoint? waypoint;
   final bool showConfirmButton;
-  final FocusNode focusNode;
+  final FocusNode? focusNode;
   final TextEditingController controller;
 
   @override
@@ -36,10 +36,16 @@ class _AirportFieldState extends State<AirportField> {
   List<Airport>? _airports;
   Map<String, Airport> _airportsByIcao = {};
 
+  FocusNode? _internalFocusNode;
+  FocusNode get focusNode => widget.focusNode ?? _internalFocusNode!;
+
   @override
   void initState() {
     super.initState();
-    widget.focusNode.addListener(_focusNodeListener);
+    if (widget.focusNode == null) {
+      _internalFocusNode = FocusNode();
+    }
+    focusNode.addListener(_focusNodeListener);
     widget.controller.addListener(_onTextChanged);
   }
 
@@ -66,7 +72,7 @@ class _AirportFieldState extends State<AirportField> {
   }
 
   void _focusNodeListener() {
-    if (!widget.focusNode.hasFocus) {
+    if (!focusNode.hasFocus) {
       popupController?.hide();
       popupController = null;
       popupStateSetter = null;
@@ -75,8 +81,9 @@ class _AirportFieldState extends State<AirportField> {
 
   @override
   void dispose() {
-    widget.focusNode.removeListener(_focusNodeListener);
+    focusNode.removeListener(_focusNodeListener);
     widget.controller.removeListener(_onTextChanged);
+    _internalFocusNode?.dispose();
     super.dispose();
   }
 
@@ -123,7 +130,7 @@ class _AirportFieldState extends State<AirportField> {
           '${widget.waypoint!.iata ?? '?'} - ${widget.waypoint!.city}';
     }
     return AnimatedBuilder(
-      animation: widget.focusNode,
+      animation: focusNode,
       builder: (ctx, _) => AnimatedBuilder(
         animation: widget.controller,
         builder: (context, _) => RelativePopupHost(
@@ -134,7 +141,7 @@ class _AirportFieldState extends State<AirportField> {
               floatingLabelBehavior: FloatingLabelBehavior.always,
               suffixText:
                   _airportsByIcao[widget.controller.text.trim()]?.description,
-              suffixIcon: widget.focusNode.hasFocus && widget.showConfirmButton
+              suffixIcon: focusNode.hasFocus && widget.showConfirmButton
                   ? InkWell(
                       child: const Icon(Icons.done),
                       onTap: () => FocusScope.of(context).unfocus(),
@@ -158,7 +165,7 @@ class _AirportFieldState extends State<AirportField> {
                 ),
               );
             },
-            focusNode: widget.focusNode,
+            focusNode: focusNode,
             controller: widget.controller,
           ),
         ),

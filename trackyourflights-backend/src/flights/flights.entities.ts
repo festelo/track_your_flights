@@ -19,10 +19,12 @@ export class UserFlightSearch {
   ident: string;
   
   @Column()
-  startDate: Date;
-
-  @Column()
-  endDate: Date;
+  aproxDate: Date;
+  
+  @Column({
+    default: 720
+  })
+  minutesRange: number;
 
   @Column({
     nullable: true,

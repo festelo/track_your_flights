@@ -36,6 +36,12 @@ class OrdersTab extends ConsumerWidget {
             for (final order in ref.watch(state).orders ?? [])
               OrderTile(
                 order: order,
+                onFlightEdit: (f) =>
+                    ref.watch(presenter).changeOrderFlight(order.id, f),
+                onFlightSearchCancel: (f) =>
+                    ref.watch(presenter).cancelOrderFlightSearch(f),
+                onFlightSearchApply: (f) =>
+                    ref.watch(presenter).applyOrderFlightSearch(order.id, f),
               ),
             const SizedBox(height: 18),
           ],

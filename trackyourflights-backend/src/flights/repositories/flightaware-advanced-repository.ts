@@ -6,6 +6,7 @@ import { AdvancedResponse, FlightRoot } from './flightaware-advanced-repository.
 import * as assert from 'assert';
 import { dateFromEpoch } from 'src/utils';
 import { getIdentFromHistoryLink, getPathFromHistoryLink } from '../flightaware-uri-utils';
+import { response } from 'express';
 
 type GetByParams = {
   historyUrl: string
@@ -197,6 +198,8 @@ export class FlightAwareAdvancedRepository {
     const responseData = (res.data as string).trim();
     if (responseData == 'No track log available') return false;
     if (responseData == 'Invalid request') throw new Error('Invalid request');
+    if (responseData == 'Flight date too far in the future\nNo track log available') return false;
+    if (response.statusCode == 500) throw new Error('500')
     return true;
   }
 

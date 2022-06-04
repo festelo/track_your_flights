@@ -22,7 +22,7 @@ class _FlightsMapState extends State<FlightsMap> with DisposableState {
   void initState() {
     super.initState();
     appNotifier.events
-        .whereType<OrderAddedEvent>()
+        .whereType<OrdersModifiedEvent>()
         .listen((e) => refreshGeojson())
         .disposeWith(this);
   }

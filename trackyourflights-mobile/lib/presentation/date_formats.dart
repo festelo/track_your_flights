@@ -1,23 +1,23 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
-String _getLocale(BuildContext context) =>
-    Localizations.localeOf(context).toLanguageTag();
+String? _getLocale(BuildContext? context) =>
+    context == null ? null : Localizations.localeOf(context).toLanguageTag();
 
 extension DateTimeExt on DateTime {
-  String formattedTime(BuildContext context) {
+  String formattedTime(BuildContext? context) {
     return DateFormat.Hm(_getLocale(context)).format(this);
   }
 
-  String formattedTimeDate(BuildContext context) {
+  String formattedTimeDate(BuildContext? context) {
     return DateFormat('HH:mm dd.MM.yyyy', _getLocale(context)).format(this);
   }
 
-  String formattedDateShort(BuildContext context) {
+  String formattedDateShort(BuildContext? context) {
     return DateFormat.yMd(_getLocale(context)).format(this);
   }
 
-  String formattedDate(BuildContext context) {
+  String formattedDate(BuildContext? context) {
     return DateFormat.yMMMd(_getLocale(context)).format(this);
   }
 }

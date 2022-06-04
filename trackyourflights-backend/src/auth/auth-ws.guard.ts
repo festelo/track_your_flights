@@ -16,6 +16,7 @@ export class AuthWsGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext) {
+    const data = context.switchToWs().getData();
     const isPublic = this.reflector.getAllAndOverride<boolean>(PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -28,7 +29,7 @@ export class AuthWsGuard implements CanActivate {
 
     if (!authenticated) {
       const client = context.switchToWs().getClient() as WebSocket
-      client.send('authentication failed')
+      client.send(JSON.stringify({id: data.id, error: 'authentication failed'}))
     }
 
     return authenticated;
@@ -55,7 +56,7 @@ export class LocalAuthWsGuard implements CanActivate {
       return user != null;
     } catch (ex) {
       const client = context.switchToWs().getClient() as WebSocket
-      client.send('authentication failed')
+      client.send(JSON.stringify({id: data.id, error: 'authentication failed'}))
       return false;
     }
   }

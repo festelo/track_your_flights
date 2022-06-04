@@ -3,7 +3,11 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:trackyourflights/data/http/uri_resolver.dart';
 import 'package:trackyourflights/data/repositories/history/dto/add_order_request.dart';
+import 'package:trackyourflights/data/repositories/history/dto/change_order_request.dart';
+import 'package:trackyourflights/data/repositories/history/dto/order_flight_dto.dart';
+import 'package:trackyourflights/data/repositories/history/dto/price_dto.dart';
 import 'package:trackyourflights/data/repositories/history/mappers/order_mappers.dart';
+import 'package:trackyourflights/domain/entities/flight.dart';
 import 'package:trackyourflights/domain/entities/order.dart';
 import 'package:trackyourflights/domain/repositories/history_repository.dart';
 
@@ -45,12 +49,36 @@ class HistoryRepositoryImpl implements HistoryRepository {
           seller: order.seller,
           flights: order.flights
               .map(
-                (e) => AddOrderFlightDto(
-                  flightId: e.flight.id,
+                (e) => OrderFlightDto(
+                  flightId: e.flightOrSearch.flight?.id,
+                  searchId: e.flightOrSearch.search?.id,
                   personsCount: e.personsCount,
                 ),
               )
               .toList(),
+        ).toMap(),
+      ),
+    );
+  }
+
+  @override
+  Future<void> updateOrderFlight(
+    String orderId,
+    String oldFlightId,
+    OrderFlight flight,
+  ) async {
+    await client.post(
+      uriResolver.uri('/history/update-flight'),
+      headers: {'content-type': 'application/json'},
+      body: jsonEncode(
+        ChangeOrderRequest(
+          orderId: orderId,
+          oldFlightId: oldFlightId,
+          flight: OrderFlightDto(
+            flightId: flight.flightOrSearch.flight?.id,
+            searchId: flight.flightOrSearch.search?.id,
+            personsCount: flight.personsCount,
+          ),
         ).toMap(),
       ),
     );

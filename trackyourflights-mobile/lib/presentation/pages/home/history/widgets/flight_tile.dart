@@ -13,6 +13,8 @@ class FlightTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final flight = orderFlight.flightOrSearch.flight!;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
@@ -26,7 +28,7 @@ class FlightTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        orderFlight.flight.origin.city,
+                        flight.origin.city,
                         maxLines: 2,
                         style: const TextStyle(
                           fontSize: 18,
@@ -37,7 +39,7 @@ class FlightTile extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            orderFlight.flight.takeoffTimes.display
+                            flight.takeoffTimes.display
                                     ?.formattedTime(context) ??
                                 '-',
                             style: const TextStyle(
@@ -47,7 +49,7 @@ class FlightTile extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            orderFlight.flight.takeoffTimes.display
+                            flight.takeoffTimes.display
                                     ?.formattedDateShort(context) ??
                                 '-',
                             style: const TextStyle(
@@ -67,7 +69,7 @@ class FlightTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      orderFlight.flight.destination.city,
+                      flight.destination.city,
                       maxLines: 2,
                       style: const TextStyle(
                         fontSize: 18,
@@ -78,8 +80,7 @@ class FlightTile extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          orderFlight.flight.landingTimes.display
-                                  ?.formattedTime(context) ??
+                          flight.landingTimes.display?.formattedTime(context) ??
                               '-',
                           style: const TextStyle(
                             fontSize: 14,
@@ -88,7 +89,7 @@ class FlightTile extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          orderFlight.flight.landingTimes.display
+                          flight.landingTimes.display
                                   ?.formattedDateShort(context) ??
                               '-',
                           style: const TextStyle(
@@ -123,13 +124,14 @@ class FlightTile extends StatelessWidget {
                 ],
                 if (constr.maxWidth > 100) ...[
                   const SizedBox(width: 18),
-                  const Icon(
+                  Icon(
                     Icons.airplanemode_active,
+                    color: orderFlight.trackExists ? null : Colors.red,
                     size: 14,
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    orderFlight.flight.aircraft.shortName,
+                    flight.aircraft.shortName,
                     style: const TextStyle(
                       fontSize: 14,
                     ),
@@ -142,11 +144,11 @@ class FlightTile extends StatelessWidget {
                     size: 14,
                   ),
                   const SizedBox(width: 4),
-                  if (orderFlight.flight.landingTimes.display != null &&
-                      orderFlight.flight.takeoffTimes.display != null)
+                  if (flight.landingTimes.display != null &&
+                      flight.takeoffTimes.display != null)
                     Text(
-                      orderFlight.flight.landingTimes.display!
-                          .difference(orderFlight.flight.takeoffTimes.display!)
+                      flight.landingTimes.display!
+                          .difference(flight.takeoffTimes.display!)
                           .formattedTime(context),
                       style: const TextStyle(
                         fontSize: 14,

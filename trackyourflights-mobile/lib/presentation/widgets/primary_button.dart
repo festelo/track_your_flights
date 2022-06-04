@@ -47,9 +47,9 @@ class PrimaryButtonState extends State<PrimaryButton> {
     return InkWell(
       onTap: widget.onTap,
       child: AnimatedContainer(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(6),
           color: _error == null
               ? Theme.of(context).colorScheme.secondary
               : Theme.of(context).colorScheme.error,

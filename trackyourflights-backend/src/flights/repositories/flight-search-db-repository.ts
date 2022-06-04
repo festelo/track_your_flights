@@ -18,17 +18,26 @@ export class FlightSearchDbRepository {
         userId: search.userId
       }
     })
-    if (res == null) {
-      await this.flightsRepository.save(search);
-    }
+    if (res != null) {
+      search.id = res.id
+    } 
+    await this.flightsRepository.save(search);
   }
 
 
 
-  async getBySearchId(searchId: string) {
+  async getById(id: string) {
+    return await this.flightsRepository.findOne({
+      where: {
+        id,
+      }
+    })
+  }
+
+  async getByJobId(jobId: string) {
     return await this.flightsRepository.find({
       where: {
-        searchId,
+        searchId: jobId,
       }
     })
   }

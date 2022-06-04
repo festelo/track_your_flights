@@ -24,10 +24,12 @@ class TrackRepositoryImpl implements TrackRepository {
   @override
   Future<void> saveOrderTracks(Order order) async {
     for (final orderFlight in order.flights) {
-      await saveFlightTrack(orderFlight.flight);
+      if (orderFlight.flightOrSearch.flight == null) continue;
+      await saveFlightTrack(orderFlight.flightOrSearch.flight!);
     }
   }
 
+  @override
   Future<void> saveFlightTrack(Flight flight) async {
     await client.post(
       uriResolver.uri('/track/setup'),

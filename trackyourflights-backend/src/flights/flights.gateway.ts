@@ -14,7 +14,6 @@ import { AuthWsGuard, LocalAuthWsGuard } from 'src/auth/auth-ws.guard';
 import { Public } from 'src/auth/auth.decorator';
 import { FlightsConsumer, FlightSearchEvent } from './flights.consumer';
 import { FlightsService } from './flights.service';
-import { FlightSearchDbRepository } from './repositories/flight-search-db-repository';
 
 type OutMessage = {
   id?: string,
@@ -75,7 +74,7 @@ export class FlightsGateway implements OnGatewayConnection, OnGatewayDisconnect 
       if (this.idToClient[u.userId]) {
         this.idToClient[u.userId].send(JSON.stringify({
           channel: 'flights-search',
-          data: e
+          data: { ...e, id : u.id },
         } as OutMessage));
       }
     }
@@ -83,6 +82,8 @@ export class FlightsGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   handleDisconnect(client: any) {
-    delete this.idToClient[client.user.id];
+    if (client.user?.id) {
+      delete this.idToClient[client.user.id];
+    }
   }
 }

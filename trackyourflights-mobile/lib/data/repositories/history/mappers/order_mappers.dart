@@ -1,6 +1,7 @@
 import 'package:trackyourflights/domain/entities/aircraft.dart';
 import 'package:trackyourflights/domain/entities/currency.dart';
 import 'package:trackyourflights/domain/entities/flight.dart';
+import 'package:trackyourflights/domain/entities/flight_search.dart';
 import 'package:trackyourflights/domain/entities/order.dart';
 import 'package:trackyourflights/domain/entities/price.dart';
 import 'package:trackyourflights/domain/entities/route_date_time.dart';
@@ -25,7 +26,17 @@ abstract class OrderMappers {
 abstract class OrderFlightMappers {
   static OrderFlight flightFromMap(Map<String, dynamic> map) {
     return OrderFlight(
-      flight: FlightMappers.flightFromMap(map['flight']),
+      id: map['id']?.toString(),
+      trackExists: map['trackExists'],
+      flightOrSearch: map['flight'] == null
+          ? FlightOrSearch.search(
+              FlightSearchMappers.flightSearchFromMap(
+                map['flightSearch'],
+              ),
+            )
+          : FlightOrSearch.flight(
+              FlightMappers.flightFromMap(map['flight']),
+            ),
       personsCount: map['personsCount']?.toInt() ?? 0,
     );
   }
@@ -84,6 +95,32 @@ abstract class AircraftMappers {
     return Aircraft(
       name: map['friendlyType'] ?? '',
       shortName: map['type'] ?? '',
+    );
+  }
+}
+
+abstract class FlightSearchMappers {
+  static FlightSearch flightSearchFromMap(Map<String, dynamic> map) {
+    final data = map['data'];
+    Flight? flight;
+    if (data != null && data is List) {
+      if (data.isNotEmpty) {
+        flight = FlightMappers.flightFromMap(
+          Map<String, dynamic>.from(data.first as Map),
+        );
+      }
+    }
+    return FlightSearch(
+      id: map['id']?.toString() ?? '',
+      ident: map['ident'] ?? '',
+      aproxDate: DateTime.parse(map['aproxDate']),
+      minutesRange: map['minutesRange'],
+      originItea: map['originItea'],
+      destItea: map['destItea'],
+      state: map['state'] ?? '',
+      progress: map['progress'] != null ? map['progress'] / 100 : null,
+      error: map['error'],
+      flight: flight,
     );
   }
 }
