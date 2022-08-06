@@ -77,6 +77,8 @@ abstract class RouteDateTimeMappers {
       actual: map['actual'] != null ? DateTime.parse(map['actual']) : null,
       scheduled:
           map['scheduled'] != null ? DateTime.parse(map['scheduled']) : null,
+      estimated:
+          map['estimated'] != null ? DateTime.parse(map['estimated']) : null,
     );
   }
 }
