@@ -51,13 +51,13 @@ export class HistoryService {
       }
     })
 
-    return Promise.all(ordersInDb.map(async (o) => ({
+    const res = await Promise.all(ordersInDb.map(async (o) => ({
       ...o,
       flights: await Promise.all(o.flights.map(async (f) => {
         const job = f.flightSearch == null ? null : await this.flightsQueue.getJob(f.flightSearch.searchId);
         return {
           ...f,
-          flightSearch: f.flightSearch == null ? null : {
+          flightSearch: job == null ? null : {
             ...f.flightSearch,
             state: await job.getState(),
             progress: await job.progress(),
@@ -66,7 +66,13 @@ export class HistoryService {
           },
           trackExists: f.flight?.id ? this.trackService.trackExists(f.flight?.id) : false,
         };
+      })).then((e) => e.sort((a, b) => {
+        const timeA = a.flight?.indexingDate ?? a.flightSearch?.aproxDate;
+        const timeB = b.flight?.indexingDate ?? b.flightSearch?.aproxDate;
+        return (timeA?.getTime() ?? 0) - (timeB?.getTime() ?? 0); 
       }))
     })));
+    
+    return res;
   }
 }

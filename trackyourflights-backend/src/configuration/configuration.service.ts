@@ -8,6 +8,7 @@ export class ConfigurationService {
 
   private secretsCached?: SecretsConfiguration;
   private usersCached?: UsersConfiguration;
+  private redisCached?: any;
   private configurationCached?: AppConfiguration;
 
   private load() {
@@ -23,6 +24,9 @@ export class ConfigurationService {
       fs.readFileSync(paths.configuration, 'utf8'),
     ) as AppConfiguration;
     
+    this.redisCached = JSON.parse(
+      fs.readFileSync(paths.redis, 'utf8'),
+    );
   }
 
   public secrets() {
@@ -44,5 +48,12 @@ export class ConfigurationService {
       this.load();
     }
     return this.configurationCached;
+  }
+
+  public redis() {
+    if (!this.redis) {
+      this.load();
+    }
+    return this.redisCached;
   }
 }

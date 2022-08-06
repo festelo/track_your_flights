@@ -10,6 +10,7 @@ import { ConfigurationModule } from './configuration/configuration.module';
 import { FlightsModule } from './flights/flights.module';
 import { BullModule } from '@nestjs/bull';
 import { AirportsModule } from './airports/airports.module';
+import { ConfigurationService } from './configuration/configuration.service';
 
 @Module({
   imports: [
@@ -28,13 +29,13 @@ import { AirportsModule } from './airports/airports.module';
     HistoryModule, 
     FlightsModule,
     AirportsModule,
-    BullModule.forRoot({ 
-      redis: {
-        username: 'default',
-        password: 'redispw',
-        host: 'localhost',
-        port: 55000,
-      }
+    BullModule.forRootAsync({
+      useFactory: (configService: ConfigurationService) => ({
+        redis: configService.redis(),
+      }),
+      inject: [ConfigurationService],
+      imports: [ConfigurationModule]
+
     }),
   ],
 })

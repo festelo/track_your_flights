@@ -81,7 +81,9 @@ export class TrackService {
       },
     })
     return geojsonMerge.mergeFeatureCollectionStream(
-      flightEntities.map((e) => this.resolvePath(e.flight.id))
+      flightEntities.filter((e) => e.flight != null)
+        .filter((e) => this.trackExists(e.flight.id))
+        .map((e) => this.resolvePath(e.flight.id, { checkForExistance: false }))
     ) 
   }
 }
