@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:http/http.dart';
+import 'package:trackyourflights/data/http/exceptions/bad_status_code_exception.dart';
 
 import 'package:trackyourflights/data/http/token_storage.dart';
 import 'package:trackyourflights/data/http/uri_resolver.dart';
+import 'package:trackyourflights/domain/exceptions/wrong_credentials_exception.dart';
 import 'package:trackyourflights/domain/repositories/session_repository.dart';
 
 class SessionRepositoryImpl implements SessionRepository {
@@ -23,16 +25,23 @@ class SessionRepositoryImpl implements SessionRepository {
 
   @override
   Future<void> authenticate(String username, String password) async {
-    final res = await client.post(
-      uriResolver.uri('/auth/login'),
-      body: {
-        "username": username,
-        "password": password,
-      },
-    );
-    final json = jsonDecode(res.body);
-    final accessToken = json["access_token"];
-    tokenStorage.setCurrentToken(accessToken);
+    try {
+      final res = await client.post(
+        uriResolver.uri('/auth/login'),
+        body: {
+          "username": username,
+          "password": password,
+        },
+      );
+      final json = jsonDecode(res.body);
+      final accessToken = json["access_token"];
+      tokenStorage.setCurrentToken(accessToken);
+    } on BadStatusCodeException catch (e) {
+      if (e.statusCode == 401) {
+        throw WrongCredentialsException();
+      }
+      rethrow;
+    }
   }
 
   @override

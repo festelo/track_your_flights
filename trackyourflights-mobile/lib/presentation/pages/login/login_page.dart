@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:trackyourflights/domain/exceptions/wrong_credentials_exception.dart';
 import 'package:trackyourflights/presentation/pages/home/home_page.dart';
 import 'package:trackyourflights/presentation/widgets/loading_overlay.dart';
 import 'package:trackyourflights/presentation/widgets/primary_button.dart';
@@ -15,6 +16,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> formKey = GlobalKey();
+  final GlobalKey<PrimaryButtonState> buttonKey = GlobalKey();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool _loading = false;
@@ -32,9 +34,27 @@ class _LoginPageState extends State<LoginPage> {
           CupertinoPageRoute(builder: (ctx) => const HomePage()),
         );
       }
+    } on WrongCredentialsException {
+      buttonKey.currentState?.addError('Invalid credentials');
+    } catch (e) {
+      showSnackbarError(e.toString());
     } finally {
       _loading = false;
     }
+  }
+
+  void showSnackbarError(String text) {
+    ScaffoldMessenger.of(formKey.currentContext!).showSnackBar(
+      SnackBar(
+        content: Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
   }
 
   @override
@@ -118,6 +138,7 @@ class _LoginPageState extends State<LoginPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: PrimaryButton(
+                          key: buttonKey,
                           onTap: onLogin,
                           text: 'Login',
                         ),
