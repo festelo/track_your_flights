@@ -25,6 +25,8 @@ import 'package:uuid/uuid.dart';
 
 final tokenStorage = TokenStorage();
 
+const isProd = true;
+
 final debugUriResolver = UriResolver(
   scheme: 'http',
   endpoint: '192.168.1.101:3000',
@@ -39,7 +41,10 @@ final prodUriResolver = UriResolver(
 
 final debugWsUri = Uri.parse('ws://localhost:3001/');
 
-UriResolver get uriResolver => debugUriResolver;
+final prodWsUri = Uri.parse('wss://flights.festelo.tk/ws');
+
+UriResolver get uriResolver => isProd ? prodUriResolver : debugUriResolver;
+Uri get wsUri => isProd ? prodWsUri : debugWsUri;
 
 final client = HttpClient(
   Client(),
@@ -55,7 +60,7 @@ final client = HttpClient(
 );
 
 final wsClient = AggregatedWsClient(
-  WsClient(debugWsUri),
+  WsClient(wsUri),
   [
     (client) => LoggingWsClient(client),
     (client) => AuthWsClient(client, tokenStorage),
