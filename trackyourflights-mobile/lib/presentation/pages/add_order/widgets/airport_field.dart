@@ -39,6 +39,8 @@ class _AirportFieldState extends State<AirportField> {
   FocusNode? _internalFocusNode;
   FocusNode get focusNode => widget.focusNode ?? _internalFocusNode!;
 
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +86,7 @@ class _AirportFieldState extends State<AirportField> {
     focusNode.removeListener(_focusNodeListener);
     widget.controller.removeListener(_onTextChanged);
     _internalFocusNode?.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -103,10 +106,13 @@ class _AirportFieldState extends State<AirportField> {
     if (children.length > 3) {
       child = SizedBox(
         height: 200,
-        child: Scrollbar(
-          thumbVisibility: true,
-          child: ListView(
-            children: children,
+        child: PrimaryScrollController(
+          controller: _scrollController,
+          child: Scrollbar(
+            thumbVisibility: true,
+            child: ListView(
+              children: children,
+            ),
           ),
         ),
       );
