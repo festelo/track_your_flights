@@ -1,15 +1,17 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
+
 import 'package:trackyourflights/data/http/uri_resolver.dart';
-import 'package:trackyourflights/data/repositories/history/dto/add_order_request.dart';
-import 'package:trackyourflights/data/repositories/history/dto/change_order_request.dart';
-import 'package:trackyourflights/data/repositories/history/dto/order_flight_dto.dart';
-import 'package:trackyourflights/data/repositories/history/dto/price_dto.dart';
-import 'package:trackyourflights/data/repositories/history/mappers/order_mappers.dart';
 import 'package:trackyourflights/domain/entities/flight.dart';
 import 'package:trackyourflights/domain/entities/order.dart';
 import 'package:trackyourflights/domain/repositories/history_repository.dart';
+
+import 'dto/add_order_request.dart';
+import 'dto/change_order_request.dart';
+import 'dto/order_flight_dto.dart';
+import 'dto/price_dto.dart';
+import 'mappers/order_mappers.dart';
 
 class HistoryRepositoryImpl implements HistoryRepository {
   const HistoryRepositoryImpl({

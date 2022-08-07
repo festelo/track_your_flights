@@ -2,7 +2,7 @@ import 'package:http/http.dart';
 import 'package:trackyourflights/data/http/clients/token_client.dart';
 import 'package:trackyourflights/data/http/token_storage.dart';
 import 'package:trackyourflights/data/http/uri_resolver.dart';
-import 'package:trackyourflights/data/repositories/session/session_repository.dart';
+import 'session_repository.dart';
 
 class SessionTokenRefreshHandler implements TokenRefreshHandler {
   SessionTokenRefreshHandler(this.uriResolver, this.tokenStorage);

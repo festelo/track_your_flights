@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
+
 import 'package:trackyourflights/data/http/uri_resolver.dart';
-import 'package:trackyourflights/data/repositories/flight_search/mappers/flight_search_mappers.dart';
-import 'package:trackyourflights/data/repositories/history/mappers/order_mappers.dart';
+import 'package:trackyourflights/data/repositories/history/api/mappers/order_mappers.dart';
 import 'package:trackyourflights/domain/entities/flight.dart';
 import 'package:trackyourflights/domain/entities/flight_presearch_result.dart';
 import 'package:trackyourflights/domain/repositories/flight_search_repository.dart';
+
+import 'mappers/flight_search_mappers.dart';
 
 class FlightSearchRepositoryImpl implements FlightSearchRepository {
   const FlightSearchRepositoryImpl({

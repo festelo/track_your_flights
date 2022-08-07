@@ -4,13 +4,19 @@ import 'package:trackyourflights/data/http/clients/http_client.dart';
 import 'package:trackyourflights/data/http/clients/token_client.dart';
 import 'package:trackyourflights/data/http/token_storage.dart';
 import 'package:trackyourflights/data/http/uri_resolver.dart';
-import 'package:trackyourflights/data/repositories/airports/airports_repostiory.dart';
-import 'package:trackyourflights/data/repositories/complex_search/complex_search_repository.dart';
-import 'package:trackyourflights/data/repositories/flight_search/flight_search_repository.dart';
-import 'package:trackyourflights/data/repositories/history/history_repository.dart';
-import 'package:trackyourflights/data/repositories/session/session_repository.dart';
-import 'package:trackyourflights/data/repositories/session/token_refresh_handler.dart';
-import 'package:trackyourflights/data/repositories/track/track_repository.dart';
+import 'package:trackyourflights/data/repositories/airports/api/airports_repostiory.dart';
+import 'package:trackyourflights/data/repositories/airports/mock/airports_repository_mock.dart';
+import 'package:trackyourflights/data/repositories/complex_search/api/complex_search_repository.dart';
+import 'package:trackyourflights/data/repositories/complex_search/mock/complex_search_repository_mock.dart';
+import 'package:trackyourflights/data/repositories/flight_search/api/flight_search_repository.dart';
+import 'package:trackyourflights/data/repositories/flight_search/mock/flight_search_repository_mock.dart';
+import 'package:trackyourflights/data/repositories/history/api/history_repository.dart';
+import 'package:trackyourflights/data/repositories/history/mock/history_repository_mock.dart';
+import 'package:trackyourflights/data/repositories/session/api/session_repository.dart';
+import 'package:trackyourflights/data/repositories/session/api/token_refresh_handler.dart';
+import 'package:trackyourflights/data/repositories/session/mock/session_repository_mock.dart';
+import 'package:trackyourflights/data/repositories/track/api/track_repository.dart';
+import 'package:trackyourflights/data/repositories/track/mock/track_repository_mock.dart';
 import 'package:trackyourflights/data/ws/clients/auth_ws_client.dart';
 import 'package:trackyourflights/data/ws/clients/logging_ws_client.dart';
 import 'package:trackyourflights/data/ws/clients/aggregated_ws_client.dart';
@@ -23,82 +29,106 @@ import 'package:trackyourflights/domain/repositories/session_repository.dart';
 import 'package:trackyourflights/domain/repositories/track_repository.dart';
 import 'package:uuid/uuid.dart';
 
+enum EnvironmentConfiguration { prod, local, mock }
+
+const _envConfig = EnvironmentConfiguration.mock;
+
 final tokenStorage = TokenStorage();
 
-const isProd = true;
-
-final debugUriResolver = UriResolver(
+final _localUriResolver = UriResolver(
   scheme: 'http',
   endpoint: '192.168.1.101:3000',
   path: 'api',
 );
 
-final prodUriResolver = UriResolver(
+final _prodUriResolver = UriResolver(
   scheme: 'https',
   endpoint: 'flights.festelo.tk',
   path: 'api',
 );
 
-final debugWsUri = Uri.parse('ws://localhost:3001/');
+final _localWsUri = Uri.parse('ws://localhost:3001/');
 
-final prodWsUri = Uri.parse('wss://flights.festelo.tk/ws');
+final _prodWsUri = Uri.parse('wss://flights.festelo.tk/ws');
 
-UriResolver get uriResolver => isProd ? prodUriResolver : debugUriResolver;
-Uri get wsUri => isProd ? prodWsUri : debugWsUri;
+UriResolver get _uriResolver => _envConfig == EnvironmentConfiguration.prod
+    ? _prodUriResolver
+    : _localUriResolver;
 
-final client = HttpClient(
+Uri get _wsUri =>
+    _envConfig == EnvironmentConfiguration.prod ? _prodWsUri : _localWsUri;
+
+final _client = HttpClient(
   Client(),
   [
     (client) => ErrorClient(client),
     (client) => TokenClient(
           client,
           tokenStorage,
-          tokenRefreshHandler:
-              SessionTokenRefreshHandler(uriResolver, tokenStorage),
+          tokenRefreshHandler: SessionTokenRefreshHandler(
+            _uriResolver,
+            tokenStorage,
+          ),
         ),
   ],
 );
 
-final wsClient = AggregatedWsClient(
-  WsClient(wsUri),
+final _wsClient = AggregatedWsClient(
+  WsClient(_wsUri),
   [
     (client) => LoggingWsClient(client),
     (client) => AuthWsClient(client, tokenStorage),
   ],
 );
 
-final SessionRepository sessionRepository = SessionRepositoryImpl(
-  uriResolver: uriResolver,
-  client: client,
-  tokenStorage: tokenStorage,
-);
+final SessionRepository sessionRepository =
+    _envConfig == EnvironmentConfiguration.mock
+        ? SessionRepositoryMock()
+        : SessionRepositoryImpl(
+            uriResolver: _uriResolver,
+            client: _client,
+            tokenStorage: tokenStorage,
+          );
 
-final AirportsRepository airportsRepository = AirportsRepositoryImpl(
-  uriResolver: uriResolver,
-  client: client,
-);
+final AirportsRepository airportsRepository =
+    _envConfig == EnvironmentConfiguration.mock
+        ? AirportsRepositoryMock()
+        : AirportsRepositoryImpl(
+            uriResolver: _uriResolver,
+            client: _client,
+          );
 
 final FlightSearchRepository flightSearchRepository =
-    FlightSearchRepositoryImpl(
-  uriResolver: uriResolver,
-  client: client,
-);
+    _envConfig == EnvironmentConfiguration.mock
+        ? FlightSearchRepositoryMock()
+        : FlightSearchRepositoryImpl(
+            uriResolver: _uriResolver,
+            client: _client,
+          );
 
-final HistoryRepository historyRepository = HistoryRepositoryImpl(
-  uriResolver: uriResolver,
-  client: client,
-);
+final HistoryRepository historyRepository =
+    _envConfig == EnvironmentConfiguration.mock
+        ? HistoryRepositoryMock()
+        : HistoryRepositoryImpl(
+            uriResolver: _uriResolver,
+            client: _client,
+          );
 
-final TrackRepository trackRepository = TrackRepositoryImpl(
-  uriResolver: uriResolver,
-  client: client,
-);
+final TrackRepository trackRepository =
+    _envConfig == EnvironmentConfiguration.mock
+        ? TrackRepositoryMock()
+        : TrackRepositoryImpl(
+            uriResolver: _uriResolver,
+            client: _client,
+          );
 
 final ComplexSearchRepository complexSearchRepository =
-    ComplexSearchRepositoryImpl(
-  uriResolver: uriResolver,
-  client: client,
-  wsClient: wsClient,
-);
+    _envConfig == EnvironmentConfiguration.mock
+        ? ComplexSearchRepositoryMock()
+        : ComplexSearchRepositoryImpl(
+            uriResolver: _uriResolver,
+            client: _client,
+            wsClient: _wsClient,
+          );
 
 String get uuid => const Uuid().v4();

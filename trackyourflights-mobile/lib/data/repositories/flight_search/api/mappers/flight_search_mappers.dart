@@ -1,4 +1,4 @@
-import 'package:trackyourflights/data/repositories/flight_search/models/flight_search.dart';
+import '../models/flight_search.dart';
 
 abstract class FlightPresearchMappers {
   static FlightPresearch fromJson(dynamic json) {

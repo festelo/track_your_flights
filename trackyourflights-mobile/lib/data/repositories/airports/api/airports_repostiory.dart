@@ -1,10 +1,11 @@
 import 'dart:convert';
 
 import 'package:trackyourflights/data/http/uri_resolver.dart';
-import 'package:trackyourflights/data/repositories/airports/mappers/airports_mappers.dart';
 import 'package:trackyourflights/domain/entities/airport.dart';
 import 'package:trackyourflights/domain/repositories/airports_repository.dart';
 import 'package:http/http.dart' as http;
+
+import 'mappers/airports_mappers.dart';
 
 class AirportsRepositoryImpl implements AirportsRepository {
   const AirportsRepositoryImpl({

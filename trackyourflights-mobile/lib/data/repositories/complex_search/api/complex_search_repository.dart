@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:trackyourflights/data/http/uri_resolver.dart';
-import 'package:trackyourflights/data/repositories/history/mappers/order_mappers.dart';
+import 'package:trackyourflights/data/repositories/history/api/mappers/order_mappers.dart';
 import 'package:trackyourflights/data/ws/ws_client.dart';
 import 'package:trackyourflights/domain/entities/flight.dart';
 import 'package:trackyourflights/domain/entities/flight_search.dart';
