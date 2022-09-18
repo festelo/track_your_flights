@@ -9,6 +9,7 @@ class FlightSearchRepositoryMock implements FlightSearchRepository {
   static final _flightsList = [
     Flight(
       id: 'mock-flight',
+      ident: 'ident',
       origin: const Waypoint(
         airport: 'Berlin Bradenburg',
         city: 'Berlin',

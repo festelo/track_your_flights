@@ -7,9 +7,13 @@ class FlightTile extends StatelessWidget {
   const FlightTile({
     Key? key,
     required this.orderFlight,
+    required this.alwaysShowFlightEdit,
+    required this.onEdit,
   }) : super(key: key);
 
   final OrderFlight orderFlight;
+  final bool alwaysShowFlightEdit;
+  final void Function() onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -21,87 +25,113 @@ class FlightTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Flexible(
-                child: SizedBox(
-                  width: 200,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        flight.origin.city,
-                        maxLines: 2,
-                        style: const TextStyle(
-                          fontSize: 18,
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: SizedBox(
+                        width: 200,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              flight.origin.city,
+                              maxLines: 2,
+                              style: const TextStyle(
+                                fontSize: 18,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  flight.takeoffTimes.display
+                                          ?.formattedTime(context) ??
+                                      '-',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  flight.takeoffTimes.display
+                                          ?.formattedDateShort(context) ??
+                                      '-',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            flight.takeoffTimes.display
-                                    ?.formattedTime(context) ??
-                                '-',
+                            flight.destination.city,
+                            maxLines: 2,
                             style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
+                              fontSize: 18,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            flight.takeoffTimes.display
-                                    ?.formattedDateShort(context) ??
-                                '-',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                            ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                flight.landingTimes.display
+                                        ?.formattedTime(context) ??
+                                    '-',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                flight.landingTimes.display
+                                        ?.formattedDateShort(context) ??
+                                    '-',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      flight.destination.city,
-                      maxLines: 2,
-                      style: const TextStyle(
-                        fontSize: 18,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          flight.landingTimes.display?.formattedTime(context) ??
-                              '-',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          flight.landingTimes.display
-                                  ?.formattedDateShort(context) ??
-                              '-',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
               ),
+              SizedBox(
+                width: 100,
+                child: alwaysShowFlightEdit
+                    ? Row(
+                        children: [
+                          IconButton(
+                            onPressed: onEdit,
+                            iconSize: 16,
+                            icon: const Icon(Icons.edit),
+                          ),
+                          IconButton(
+                            onPressed: () {},
+                            iconSize: 16,
+                            icon: const Icon(Icons.delete),
+                          ),
+                        ],
+                      )
+                    : null,
+              )
             ],
           ),
           const SizedBox(height: 8),

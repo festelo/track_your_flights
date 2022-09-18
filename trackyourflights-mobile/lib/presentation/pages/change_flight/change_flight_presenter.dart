@@ -1,14 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:trackyourflights/domain/entities/either.dart';
 
 import 'package:trackyourflights/domain/entities/flight.dart';
-import 'package:trackyourflights/domain/entities/flight_presearch_result.dart';
-import 'package:trackyourflights/presentation/date_formats.dart';
 import 'package:trackyourflights/presentation/event/app_notifier.dart';
 import 'package:trackyourflights/presentation/pages/add_order/presenters/flight_presenter.dart';
-import 'package:trackyourflights/presentation/pages/add_order/presenters/flight_search_by_time_range/flight_search_by_time_range_presenter.dart';
-import 'package:trackyourflights/presentation/pages/add_order/presenters/models.dart';
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
 import 'package:trackyourflights/presentation/widgets/primary_button.dart';
 import 'package:trackyourflights/repositories.dart';
@@ -46,27 +41,7 @@ class ChangeFlightPresenter extends CompletePresenterStandalone {
   @override
   void initState() {
     super.initState();
-    if (flight.flightOrSearch.search != null) {
-      final search = flight.flightOrSearch.search!;
-      flightPresenter.searchType = SearchType.byDateRange;
-      final presenter =
-          flightPresenter.searchPresenter as FlightSearchByTimeRangePresenter;
-      presenter.state.aproxDate = DateTime.utc(
-          search.aproxDate.year, search.aproxDate.month, search.aproxDate.day);
-      presenter.state.aproxTimeController.text =
-          search.aproxDate.formattedTime(null);
-      presenter.state.departureAirportController.text = search.originItea ?? '';
-      presenter.state.arrivalAirportController.text = search.destItea ?? '';
-      presenter.state.flightNumberController.text = search.ident;
-      presenter.state.flightPresearch = Either.value(
-        FlightPresearchResult(
-          description: search.ident,
-          ident: search.ident,
-        ),
-      );
-      flightPresenter.state.personsController.text =
-          flight.personsCount.toString();
-    }
+    flightPresenter.fillFromOrderFlight(flight);
     attachFlightPresenter(flightPresenter);
   }
 

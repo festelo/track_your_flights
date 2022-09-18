@@ -1,4 +1,4 @@
-import 'package:http/src/client.dart';
+import 'package:http/http.dart';
 import 'package:trackyourflights/data/http/clients/token_client.dart';
 
 class TokenRefreshHandlerMock implements TokenRefreshHandler {

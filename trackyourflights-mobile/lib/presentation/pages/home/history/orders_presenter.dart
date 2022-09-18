@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
@@ -67,9 +68,29 @@ class OrdersPresenter extends CompletePresenter<OrdersState> {
     }
   }
 
+  void selectOrder(Order order) {
+    notify(() => state.selectedOrder = order);
+  }
+
+  void unselectOrder() {
+    notify(() => state.selectedOrder = null);
+  }
+
   Future<void> refreshOrders() async {
     final orders = await historyRepository.listOrders();
     state.orders = orders;
+    if (state.selectedOrder != null) {
+      if (state.orders == null) {
+        state.selectedOrder = null;
+        notify();
+      }
+      if (!state.orders!.contains(state.selectedOrder)) {
+        state.selectedOrder = state.orders!.firstWhereOrNull(
+          (o) => o.id == state.selectedOrder!.id,
+        );
+        notify();
+      }
+    }
     notify();
   }
 

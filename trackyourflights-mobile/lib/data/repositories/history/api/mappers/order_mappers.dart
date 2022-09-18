@@ -46,6 +46,7 @@ abstract class FlightMappers {
   static Flight flightFromMap(Map<String, dynamic> map) {
     return Flight(
       id: map['id'].toString(),
+      ident: map['ident'].toString(),
       origin: WaypointMappers.waypointFromMap(map['origin']),
       destination: WaypointMappers.waypointFromMap(map['destination']),
       aircraft: AircraftMappers.aircraftFromMap(map['aircraft']),

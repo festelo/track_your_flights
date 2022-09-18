@@ -24,7 +24,10 @@ class FlightSearchByParamsState {
   final TextEditingController flightNumberController = TextEditingController();
   final FocusNode flightNumberFocusNode = FocusNode();
 
-  DateTime? flightDate;
+  DateTime? _flightDate;
+  DateTime? get flightDate => _flightDate;
+  set flightDate(DateTime? date) => _flightDate =
+      date == null ? null : DateTime.utc(date.year, date.month, date.day);
 
   Either<FlightPresearchResult, dynamic> flightPresearch = const Either.empty();
 

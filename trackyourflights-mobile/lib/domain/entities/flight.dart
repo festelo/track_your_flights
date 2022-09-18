@@ -8,6 +8,7 @@ import 'package:trackyourflights/domain/entities/waypoint.dart';
 class Flight with EquatableMixin {
   const Flight({
     required this.id,
+    required this.ident,
     required this.origin,
     required this.destination,
     required this.landingTimes,
@@ -17,6 +18,7 @@ class Flight with EquatableMixin {
   });
 
   final String id;
+  final String ident;
   final Waypoint origin;
   final Waypoint destination;
   final RouteDateTime landingTimes;
@@ -27,6 +29,7 @@ class Flight with EquatableMixin {
   @override
   List<Object?> get props => [
         id,
+        ident,
         origin,
         destination,
         landingTimes,

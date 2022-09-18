@@ -40,7 +40,7 @@ class App extends StatelessWidget {
         // Locale('en', 'RU'),
         Locale('en', 'GB'),
       ],
-      scrollBehavior: MaterialScrollBehavior().copyWith(
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
         dragDevices: {
           PointerDeviceKind.mouse,
           PointerDeviceKind.touch,

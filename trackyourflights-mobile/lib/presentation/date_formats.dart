@@ -13,6 +13,24 @@ extension DateTimeExt on DateTime {
     return DateFormat('HH:mm dd.MM.yyyy', _getLocale(context)).format(this);
   }
 
+  String formattedDateTimeTz(BuildContext? context) {
+    final dateTime = toLocal();
+    final dateTimeString =
+        DateFormat('dd.MM.yyyy HH:mm', _getLocale(context)).format(dateTime);
+    final tzString = dateTime.formatTzOffset();
+    return '$dateTimeString ($tzString)';
+  }
+
+  String formatTzOffset() {
+    String twoDigits(int n) => n >= 10 ? "$n" : "0$n";
+
+    var hours = twoDigits(timeZoneOffset.inHours.abs());
+    var minutes = twoDigits(timeZoneOffset.inMinutes.remainder(60));
+    var sign = timeZoneOffset.inHours > 0 ? "+" : "-";
+
+    return "$sign$hours:$minutes";
+  }
+
   String formattedDateShort(BuildContext? context) {
     return DateFormat.yMd(_getLocale(context)).format(this);
   }

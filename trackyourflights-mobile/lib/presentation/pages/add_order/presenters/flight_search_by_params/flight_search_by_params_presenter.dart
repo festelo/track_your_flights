@@ -146,10 +146,10 @@ class FlightSearchByParamsPresenter implements FlightSearchPresenter {
           ),
         ),
         checkTime: state.departureTimeSet,
-        destItea: state.arrivalAirportController.text.trim().isEmpty
-            ? null
-            : state.arrivalAirportController.text.trim(),
         originItea: state.departureAirportController.text.trim().isEmpty
+            ? null
+            : state.departureAirportController.text.trim(),
+        destItea: state.arrivalAirportController.text.trim().isEmpty
             ? null
             : state.arrivalAirportController.text.trim(),
       );

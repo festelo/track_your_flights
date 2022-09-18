@@ -1,5 +1,3 @@
-import 'package:trackyourflights/presentation/presenter/statable/presenter_statable.dart';
-
 import '../presenter.dart';
 
 typedef DisposablePresenterProvider<Presenter extends StateNotifier<State>,

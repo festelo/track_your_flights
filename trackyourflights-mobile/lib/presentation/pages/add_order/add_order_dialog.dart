@@ -8,8 +8,6 @@ import 'package:trackyourflights/presentation/pages/add_order/widgets/order_info
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
 import 'package:trackyourflights/presentation/widgets/loading_overlay.dart';
 
-import 'presenters/add_order_presenter.dart';
-
 class AddOrderDialog extends ConsumerWidget {
   const AddOrderDialog({Key? key}) : super(key: key);
 

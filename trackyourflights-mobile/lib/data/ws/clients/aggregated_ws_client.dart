@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:trackyourflights/data/ws/clients/proxy_ws_client.dart';
 import 'package:trackyourflights/data/ws/ws_client.dart';
 

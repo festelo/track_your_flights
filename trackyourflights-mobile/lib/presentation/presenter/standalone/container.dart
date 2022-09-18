@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:trackyourflights/presentation/presenter/standalone/presenter_standalone.dart';
 
 import '../presenter.dart';
 

@@ -31,7 +31,7 @@ import 'package:uuid/uuid.dart';
 
 enum EnvironmentConfiguration { prod, local, mock }
 
-const _envConfig = EnvironmentConfiguration.mock;
+const _envConfig = EnvironmentConfiguration.prod;
 
 final tokenStorage = TokenStorage();
 
