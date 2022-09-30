@@ -5,6 +5,7 @@ import { FlightApiDto } from './flightaware-repository.models';
 import { Flight } from '../flights.entities';
 import { dateFromEpoch } from 'src/utils';
 import { getPathFromHistoryLink } from '../flightaware-uri-utils';
+import { flightAwareUserAgent } from './flightaware-constants';
 
 @Injectable()
 export class FlightAwareRepository {
@@ -16,7 +17,10 @@ export class FlightAwareRepository {
     const uri = new URL('https://flightaware.com/ajax/ignoreall/omnisearch/flight.rvt');
     uri.searchParams.append('searchterm', q);
     const res = await lastValueFrom(this.httpService.get(uri.toString(), {
-      headers: { 'X-Locale': 'en_US' }
+      headers: { 
+        'X-Locale': 'en_US', 
+        ...flightAwareUserAgent,
+      }
     }));
     const data = res.data.data as [{
       description: string,
@@ -47,7 +51,10 @@ export class FlightAwareRepository {
     uri.searchParams.append('howMany', '100');
 
     const res = await lastValueFrom(this.httpService.get(uri.toString(), {
-      headers: { 'X-Locale': 'en_US' }
+      headers: {
+        'X-Locale': 'en_US', 
+        ...flightAwareUserAgent,
+      }
     }));
 
     if (!res.data.TrackIdentResult) return [];

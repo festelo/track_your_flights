@@ -7,6 +7,7 @@ import * as assert from 'assert';
 import { dateFromEpoch } from 'src/utils';
 import { getIdentFromHistoryLink, getPathFromHistoryLink } from '../flightaware-uri-utils';
 import { response } from 'express';
+import { flightAwareUserAgent } from './flightaware-constants';
 
 type GetByParams = {
   historyUrl: string
@@ -51,8 +52,7 @@ export class FlightAwareAdvancedRepository {
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
         'Accept-Language': 'en-GB,en;q=0.9,en-US;q=0.8,ru;q=0.7',
         'Cache-Control': 'max-age=0',
-        'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36 Edg/100.0.1185.50'
+        ...flightAwareUserAgent,
       }
     }));
     const regex = /{"TOKEN":"([^"]*)"/;
@@ -106,6 +106,7 @@ export class FlightAwareAdvancedRepository {
         'Cookie':
             'w_sid=305cfdef5f41d9988d8ef79370d872f21c31c0aff1c60c314374c7201b5ca3a2',
         'X-Locale': 'en_US',
+        ...flightAwareUserAgent,
       }
     }));
     const responseData = res.data as AdvancedResponse;
@@ -191,6 +192,7 @@ export class FlightAwareAdvancedRepository {
         'Cookie':
             'w_sid=305cfdef5f41d9988d8ef79370d872f21c31c0aff1c60c314374c7201b5ca3a2',
         'X-Locale': 'en_US',
+        ...flightAwareUserAgent,
       },
       validateStatus: (status) => true,
       timeout: 20000
