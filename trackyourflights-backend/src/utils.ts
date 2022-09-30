@@ -1,4 +1,3 @@
-import * as moment from 'moment'
 import 'moment-timezone'
 
 export function dateFromEpoch(date?: number) {

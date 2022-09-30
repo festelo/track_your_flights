@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { Flight } from 'src/flights/flights.entities';
+import { flightAwareUserAgent } from 'src/configuration/const-configuration';
 
 @Injectable()
 export class TrackService {
@@ -37,7 +38,11 @@ export class TrackService {
 
   private async getKML(permalink: string) {
     const kmlLink = `https://flightaware.com/${permalink}/google_earth`;
-    const kml = await lastValueFrom(this.httpService.get(kmlLink))
+    const kml = await lastValueFrom(this.httpService.get(kmlLink, {
+      headers: {
+        ...flightAwareUserAgent,
+      }
+    }))
     return kml.data.toString()
   }
 

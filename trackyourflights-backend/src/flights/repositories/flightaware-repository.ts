@@ -5,7 +5,7 @@ import { FlightApiDto } from './flightaware-repository.models';
 import { Flight } from '../flights.entities';
 import { dateFromEpoch } from 'src/utils';
 import { getPathFromHistoryLink } from '../flightaware-uri-utils';
-import { flightAwareUserAgent } from './flightaware-constants';
+import { flightAwareUserAgent } from 'src/configuration/const-configuration';
 
 @Injectable()
 export class FlightAwareRepository {

@@ -7,7 +7,7 @@ import * as assert from 'assert';
 import { dateFromEpoch } from 'src/utils';
 import { getIdentFromHistoryLink, getPathFromHistoryLink } from '../flightaware-uri-utils';
 import { response } from 'express';
-import { flightAwareUserAgent } from './flightaware-constants';
+import { flightAwareUserAgent } from 'src/configuration/const-configuration';
 
 type GetByParams = {
   historyUrl: string
