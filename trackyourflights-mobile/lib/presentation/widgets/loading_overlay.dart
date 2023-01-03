@@ -142,7 +142,7 @@ class _LoadingOverlayState extends State<LoadingOverlay>
                         ),
                       ],
                     ),
-                    style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                           fontSize: 30,
                           fontWeight: FontWeight.w300,
                         ),

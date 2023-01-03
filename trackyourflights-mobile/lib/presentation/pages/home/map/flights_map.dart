@@ -72,13 +72,9 @@ class _FlightsMapState extends State<FlightsMap> with DisposableState {
         options: MapOptions(
           zoom: 13,
         ),
-        layers: [
-          TileLayerOptions(
-            urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            subdomains: ['a', 'b', 'c'],
-            attributionBuilder: (_) {
-              return const Text("© OpenStreetMap contributors");
-            },
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           ),
         ],
       );

@@ -1,13 +1,4 @@
-import 'package:flutter/foundation.dart';
-
 import '../presenter.dart';
-
-typedef DisposablePresenterStandaloneProvider<Presenter extends ChangeNotifier>
-    = AutoDisposeChangeNotifierProvider<Presenter>;
-
-typedef DisposablePresenterStandaloneFamilyProvider<
-        Presenter extends ChangeNotifier, Param>
-    = AutoDisposeChangeNotifierProviderFamily<Presenter, Param>;
 
 class PresenterStandaloneContainer<TPresenter extends PresenterStandalone> {
   /// If [keepAlive] = false (by default), the presenter and its state will be
@@ -18,17 +9,19 @@ class PresenterStandaloneContainer<TPresenter extends PresenterStandalone> {
   final TPresenter Function() _presenterBuilder;
   final bool _keepAlive;
 
-  AutoDisposeChangeNotifierProvider<TPresenter> call() => state;
-
-  late final DisposablePresenterStandaloneProvider<TPresenter> state =
-      DisposablePresenterStandaloneProvider((ref) {
-    ref.maintainState = _keepAlive;
+  late final AutoDisposeChangeNotifierProvider<TPresenter>
+      _stateNotifierProvider = AutoDisposeChangeNotifierProvider((ref) {
+    if (_keepAlive) ref.keepAlive();
     final presenter = _presenterBuilder();
     presenter.load(ref);
     return presenter;
   });
 
-  ProviderBase<TPresenter> get actions => state.notifier;
+  StateProvider<TPresenter> call() => _stateNotifierProvider;
+
+  StateProvider<TPresenter> get state => _stateNotifierProvider;
+
+  PresenterProvider<TPresenter> get actions => _stateNotifierProvider.notifier;
 }
 
 class PresenterStandaloneContainerWithParameter<
@@ -43,15 +36,19 @@ class PresenterStandaloneContainerWithParameter<
   final TPresenter Function(TArg arg) _presenterBuilder;
   final bool _keepAlive;
 
-  AutoDisposeChangeNotifierProvider<TPresenter> call(TArg arg) => state(arg);
-
-  late final DisposablePresenterStandaloneFamilyProvider<TPresenter, TArg>
-      state = DisposablePresenterStandaloneFamilyProvider((ref, arg) {
-    ref.maintainState = _keepAlive;
+  late final AutoDisposeChangeNotifierProviderFamily<TPresenter, TArg>
+      _stateNotifierProvider =
+      AutoDisposeChangeNotifierProviderFamily((ref, arg) {
+    if (_keepAlive) ref.keepAlive();
     final presenter = _presenterBuilder(arg);
     presenter.load(ref);
     return presenter;
   });
 
-  ProviderBase<TPresenter> actions(TArg arg) => state(arg).notifier;
+  StateProvider<TPresenter> call(TArg arg) => _stateNotifierProvider(arg);
+
+  StateProvider<TPresenter> state(TArg arg) => _stateNotifierProvider(arg);
+
+  PresenterProvider<TPresenter> actions(TArg arg) =>
+      _stateNotifierProvider(arg).notifier;
 }

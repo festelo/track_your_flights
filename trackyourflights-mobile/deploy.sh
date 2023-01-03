@@ -1,0 +1,1 @@
+scp -r build/web/* root@festelo.tk:~/flights_static/

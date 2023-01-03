@@ -4,6 +4,7 @@ import 'package:trackyourflights/presentation/pages/home/history/orders_presente
 import 'package:trackyourflights/presentation/pages/home/history/orders_state.dart';
 import 'package:trackyourflights/presentation/pages/order_details/order_details.dart';
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
+import 'package:trackyourflights/presentation/widgets/over_scroll_physics.dart';
 
 import 'widgets/order_tile.dart';
 
@@ -19,9 +20,9 @@ class OrdersBar extends PresenterWidget {
 
 class _OrdersBarState extends PresenterState<OrdersBar>
     with SingleTickerProviderStateMixin {
-  ProviderBase<OrdersPresenter> get presenter => ordersContainer.actions;
+  PresenterProvider<OrdersPresenter> get presenter => ordersContainer.actions;
 
-  ProviderBase<OrdersState> get state => ordersContainer.state;
+  StateProvider<OrdersState> get state => ordersContainer.state;
 
   final ScrollController _scrollController = ScrollController();
 
@@ -203,8 +204,10 @@ class _OrdersBarState extends PresenterState<OrdersBar>
                   child: ListView.builder(
                     controller: _scrollController,
                     itemCount: ref.watch(state).orders?.length ?? 0,
-                    physics: _openingOrderTile
-                        ? const NeverScrollableScrollPhysics()
+                    physics: _openingOrderTile || openedOrder != null
+                        ? const NeverScrollableScrollPhysics(
+                            parent: OverScrollPhysics(),
+                          )
                         : null,
                     itemBuilder: (context, i) => Builder(
                       builder: (context) => FadeTransition(
@@ -245,10 +248,10 @@ class _OrdersBarState extends PresenterState<OrdersBar>
                   child: openedOrder == null
                       ? Container()
                       : OrderDetails(
-                          order: openedOrder!,
+                          order: openedOrder,
                           onFlightEdit: (f) => ref
                               .watch(presenter)
-                              .changeOrderFlight(openedOrder!.id, f),
+                              .changeOrderFlight(openedOrder.id, f),
                         ),
                 ),
               ],

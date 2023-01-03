@@ -8,9 +8,9 @@ import 'orders_state.dart';
 class OrdersTab extends ConsumerWidget {
   const OrdersTab({Key? key}) : super(key: key);
 
-  ProviderBase<OrdersPresenter> get presenter => ordersContainer.actions;
+  PresenterProvider<OrdersPresenter> get presenter => ordersContainer.actions;
 
-  ProviderBase<OrdersState> get state => ordersContainer.state;
+  StateProvider<OrdersState> get state => ordersContainer.state;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

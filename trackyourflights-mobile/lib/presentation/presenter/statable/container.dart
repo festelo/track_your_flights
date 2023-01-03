@@ -1,15 +1,7 @@
 import '../presenter.dart';
 
-typedef DisposablePresenterProvider<Presenter extends StateNotifier<State>,
-        State>
-    = AutoDisposeStateNotifierProvider<Presenter, State>;
-
-typedef DisposablePresenterFamilyProvider<
-        Presenter extends StateNotifier<State>, State, Param>
-    = AutoDisposeStateNotifierProviderFamily<Presenter, State, Param>;
-
-typedef PresenterProvider<Presenter extends StateNotifier<State>, State>
-    = StateNotifierProvider<Presenter, State>;
+typedef StateProvider<State> = ProviderBase<State>;
+typedef PresenterProvider<Presenter> = ProviderListenable<Presenter>;
 
 class PresenterContainer<TPresenter extends Presenter<TStore>, TStore> {
   /// If [keepAlive] = false (by default), the presenter and its state will be
@@ -20,15 +12,20 @@ class PresenterContainer<TPresenter extends Presenter<TStore>, TStore> {
   final TPresenter Function() _presenterBuilder;
   final bool _keepAlive;
 
-  late final DisposablePresenterProvider<TPresenter, TStore> state =
-      DisposablePresenterProvider((ref) {
-    ref.maintainState = _keepAlive;
+  late final AutoDisposeStateNotifierProvider<TPresenter, TStore>
+      _stateNotiferProvider =
+      AutoDisposeStateNotifierProvider<TPresenter, TStore>((ref) {
+    if (_keepAlive) {
+      ref.keepAlive();
+    }
     final presenter = _presenterBuilder();
     presenter.load(ref);
     return presenter;
   });
 
-  ProviderBase<TPresenter> get actions => state.notifier;
+  StateProvider<TStore> get state => _stateNotiferProvider;
+
+  PresenterProvider<TPresenter> get actions => _stateNotiferProvider.notifier;
 }
 
 class PresenterContainerWithParameter<TPresenter extends Presenter<TStore>,
@@ -43,13 +40,20 @@ class PresenterContainerWithParameter<TPresenter extends Presenter<TStore>,
   final TPresenter Function(TArg arg) _presenterBuilder;
   final bool _keepAlive;
 
-  late final DisposablePresenterFamilyProvider<TPresenter, TStore, TArg> state =
-      DisposablePresenterFamilyProvider((ref, arg) {
-    ref.maintainState = _keepAlive;
+  late final AutoDisposeStateNotifierProviderFamily<TPresenter, TStore, TArg>
+      _stateNotiferProvider =
+      AutoDisposeStateNotifierProviderFamily<TPresenter, TStore, TArg>(
+          (ref, arg) {
+    if (_keepAlive) {
+      ref.keepAlive();
+    }
     final presenter = _presenterBuilder(arg);
     presenter.load(ref);
     return presenter;
   });
 
-  ProviderBase<TPresenter> actions(TArg arg) => state(arg).notifier;
+  StateProvider<TStore> state(TArg arg) => _stateNotiferProvider(arg);
+
+  PresenterProvider<TPresenter> actions(TArg arg) =>
+      _stateNotiferProvider(arg).notifier;
 }
