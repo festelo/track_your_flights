@@ -77,12 +77,14 @@ class _OrdersBarState extends PresenterState<OrdersBar>
       _openingOrderTile = true;
     });
     ref.read(presenter).selectOrder(order);
-    _openingOrderTileAnimationController.forward();
-    await scrollable.position.animateTo(
-      rect.top + extentBefore,
-      duration: _orderScrollTransitionDuration,
-      curve: Curves.easeOutCubic,
-    );
+    await Future.wait([
+      _openingOrderTileAnimationController.forward(),
+      scrollable.position.animateTo(
+        rect.top + extentBefore,
+        duration: _orderScrollTransitionDuration,
+        curve: Curves.easeOutCubic,
+      ),
+    ]);
     setState(() => _openingOrderTile = false);
   }
 
@@ -199,66 +201,58 @@ class _OrdersBarState extends PresenterState<OrdersBar>
           Expanded(
             child: Stack(
               children: [
-                IgnorePointer(
-                  ignoring: openedOrder != null,
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    physics: _openingOrderTile || openedOrder != null
-                        ? const NeverScrollableScrollPhysics(
-                            parent: OverScrollPhysics(),
-                          )
-                        : null,
-                    slivers: [
-                      SliverList.builder(
-                        itemCount: ref.watch(state).orders?.length ?? 0,
-                        itemBuilder: (context, i) => Builder(
-                          builder: (context) => FadeTransition(
-                            opacity: openedOrder ==
-                                        ref.watch(state).orders![i] ||
-                                    closingOrder == ref.watch(state).orders![i]
-                                ? const AlwaysStoppedAnimation(1)
-                                : _hidingOrderTileAnimation,
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 18),
-                              child: GestureDetector(
-                                onTap: () => scrollTo(
-                                  orderTileContext: context,
-                                  order: ref.watch(state).orders![i],
-                                ),
-                                behavior: HitTestBehavior.opaque,
-                                child: OrderTile(
-                                  order: ref.watch(state).orders![i],
-                                  onFlightEdit: (f) => ref
-                                      .watch(presenter)
-                                      .changeOrderFlight(
-                                          ref.watch(state).orders![i].id, f),
-                                  onFlightSearchCancel: (f) => ref
-                                      .watch(presenter)
-                                      .cancelOrderFlightSearch(f),
-                                  onFlightSearchApply: (f) => ref
-                                      .watch(presenter)
-                                      .applyOrderFlightSearch(
-                                          ref.watch(state).orders![i].id, f),
+                Visibility(
+                  visible: openedOrder == null || _openingOrderTile,
+                  maintainState: true,
+                  child: IgnorePointer(
+                    ignoring: openedOrder != null,
+                    child: CustomScrollView(
+                      controller: _scrollController,
+                      physics: _openingOrderTile || openedOrder != null
+                          ? const NeverScrollableScrollPhysics(
+                              parent: OverScrollPhysics(),
+                            )
+                          : null,
+                      slivers: [
+                        SliverList.builder(
+                          itemCount: ref.watch(state).orders?.length ?? 0,
+                          itemBuilder: (context, i) => Builder(
+                            builder: (context) => FadeTransition(
+                              opacity:
+                                  openedOrder == ref.watch(state).orders![i] ||
+                                          closingOrder ==
+                                              ref.watch(state).orders![i]
+                                      ? const AlwaysStoppedAnimation(1)
+                                      : _hidingOrderTileAnimation,
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 18),
+                                child: GestureDetector(
+                                  onTap: () => scrollTo(
+                                    orderTileContext: context,
+                                    order: ref.watch(state).orders![i],
+                                  ),
+                                  behavior: HitTestBehavior.opaque,
+                                  child: OrderTile(
+                                    order: ref.watch(state).orders![i],
+                                    onFlightEdit: (f) => ref
+                                        .watch(presenter)
+                                        .changeOrderFlight(
+                                            ref.watch(state).orders![i].id, f),
+                                    onFlightSearchCancel: (f) => ref
+                                        .watch(presenter)
+                                        .cancelOrderFlightSearch(f),
+                                    onFlightSearchApply: (f) => ref
+                                        .watch(presenter)
+                                        .applyOrderFlightSearch(
+                                            ref.watch(state).orders![i].id, f),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        fillOverscroll: true,
-                        child: Container(
-                          height: 100,
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text('kek'),
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 FadeTransition(

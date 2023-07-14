@@ -10,7 +10,7 @@ class OverScrollPhysics extends AlwaysScrollableScrollPhysics {
       pixels: position.pixels,
       axisDirection: position.axisDirection,
       minScrollExtent: min(position.minScrollExtent, position.pixels),
-      maxScrollExtent: max(position.maxScrollExtent, position.pixels),
+      maxScrollExtent: position.viewportDimension + position.maxScrollExtent,
       viewportDimension: position.viewportDimension,
       devicePixelRatio: position.devicePixelRatio,
     );
