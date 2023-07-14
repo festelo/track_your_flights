@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/plugin_api.dart';
-import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:trackyourflights/presentation/disposables/disposable_state.dart';
 import 'package:trackyourflights/presentation/disposables/disposable_stream.dart';
