@@ -6,6 +6,8 @@ import 'package:rxdart/rxdart.dart';
 import 'package:trackyourflights/presentation/disposables/disposable_state.dart';
 import 'package:trackyourflights/presentation/disposables/disposable_stream.dart';
 import 'package:trackyourflights/presentation/event/app_notifier.dart';
+import 'package:trackyourflights/presentation/pages/home/map/flights_map_mapbox.dart';
+import 'package:trackyourflights/presentation/pages/home/map/flights_map_native.dart';
 import 'package:trackyourflights/repositories.dart';
 
 class FlightsMap extends StatefulWidget {
@@ -16,7 +18,14 @@ class FlightsMap extends StatefulWidget {
 }
 
 class _FlightsMapState extends State<FlightsMap> with DisposableState {
-  MapboxMapController? _mapController;
+  dynamic _geojson;
+
+  bool get _mapboxSupported =>
+      kIsWeb ||
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
+
+  bool _mapboxSwitched = false;
 
   @override
   void initState() {
@@ -31,64 +40,42 @@ class _FlightsMapState extends State<FlightsMap> with DisposableState {
     refreshGeojson();
   }
 
-  bool sourceAdded = false;
-  bool refreshing = false;
-
   Future<void> refreshGeojson() async {
-    if (refreshing) return;
-    try {
-      if (_mapController == null) return;
-      refreshing = true;
-
-      final tracks = await trackRepository.listAllTracks();
-
-      if (sourceAdded) {
-        await _mapController!.removeLayer('tracks_lines');
-        await _mapController!.removeSource('tracks');
-      }
-
-      await _mapController!.addSource(
-        'tracks',
-        GeojsonSourceProperties(data: tracks),
-      );
-      sourceAdded = true;
-
-      await _mapController!.addLineLayer(
-        'tracks',
-        'tracks_lines',
-        LineLayerProperties(
-          lineColor: Colors.pink.toHexStringRGB(),
-        ),
-      );
-    } finally {
-      refreshing = false;
+    final geojson = await trackRepository.listAllTracks();
+    if (mounted) {
+      setState(() => _geojson = geojson);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
-      return FlutterMap(
-        options: MapOptions(
-          zoom: 13,
-        ),
-        children: [
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          ),
-        ],
+    Widget map;
+    if (_mapboxSwitched || !_mapboxSupported) {
+      map = FlightsMapNative(
+        refreshGeojson: refreshGeojson,
+        geojson: _geojson,
+      );
+    } else {
+      map = FlightsMapMapbox(
+        refreshGeojson: refreshGeojson,
+        geojson: _geojson,
       );
     }
-    return MapboxMap(
-      initialCameraPosition: const CameraPosition(
-        target: LatLng(52.5200, 13.4050),
-      ),
-      accessToken:
-          'pk.eyJ1Ijoidm90ZXIiLCJhIjoiY2tiZjhzMG12MHQwZjMxdWZoOXB6aXliaCJ9.ow8x2P3JMAV6-UaWd0cYyA',
-      styleString: 'mapbox://styles/mapbox/outdoors-v11',
-      onMapCreated: (c) => _mapController = c,
-      onStyleLoadedCallback: onMapLoaded,
-      myLocationEnabled: true,
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        map,
+        Positioned(
+          top: 0,
+          left: 0,
+          child: IconButton(
+            icon: const Icon(Icons.change_circle_outlined),
+            color: Colors.blue,
+            onPressed: () => setState(() => _mapboxSwitched = !_mapboxSwitched),
+          ),
+        ),
+      ],
     );
   }
 }

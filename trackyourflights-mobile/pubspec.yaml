@@ -19,19 +19,22 @@ dependencies:
   meta: ^1.7.0
   state_notifier: ^0.7.2+1
   intl: ^0.18.0
-  http: ^0.13.4
+  http: ^1.0.0
   shared_preferences: ^2.0.13
   collection: ^1.16.0
   uuid: ^3.0.6
   lottie: ^2.3.2
   url_launcher: ^6.1.0
-  flutter_map: ^4.0.0
-  latlong2: ^0.8.1
+  flutter_map: ^5.0.0
+  latlong2: ^0.9.0
   mapbox_gl: ^0.16.0
   equatable: ^2.0.3
   flutter_localizations:
     sdk: flutter
   web_socket_channel: ^2.2.0
+
+  flutter_map_geojson:
+    path: ../3rd/flutter_map_geojson
 
 dev_dependencies:
   flutter_test:

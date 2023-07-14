@@ -1,0 +1,3 @@
+[submodule "3rd/flutter_map_geojson"]
+	path = 3rd/flutter_map_geojson
+	url = https://github.com/festelo/flutter_map_geojson
