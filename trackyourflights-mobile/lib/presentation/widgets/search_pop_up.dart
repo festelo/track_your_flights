@@ -14,7 +14,7 @@ RelativePopupController showRelativePopup(
       host: host,
     ),
   );
-  Overlay.of(context)!.insert(entry);
+  Overlay.of(context).insert(entry);
   return RelativePopupController(entry);
 }
 

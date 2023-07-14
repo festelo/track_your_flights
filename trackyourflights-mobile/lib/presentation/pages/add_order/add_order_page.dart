@@ -48,8 +48,8 @@ class AddOrderPage extends ConsumerWidget {
                             onPressed: () => Navigator.of(context).pop(),
                             icon: const Icon(Icons.arrow_back_ios),
                           ),
-                          Column(
-                            children: const [
+                          const Column(
+                            children: [
                               SizedBox(height: 8),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 12),
