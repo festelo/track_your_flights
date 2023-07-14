@@ -11,6 +11,7 @@ import 'package:trackyourflights/presentation/event/app_notifier.dart';
 import 'package:trackyourflights/presentation/pages/add_order/add_order_dialog.dart';
 import 'package:trackyourflights/presentation/pages/add_order/add_order_page.dart';
 import 'package:trackyourflights/presentation/pages/change_flight/change_flight_dialog.dart';
+import 'package:trackyourflights/presentation/pages/login/login_page.dart';
 import 'package:trackyourflights/presentation/presenter/presenter.dart';
 import 'package:trackyourflights/repositories.dart';
 
@@ -189,5 +190,13 @@ class OrdersPresenter extends CompletePresenter<OrdersState> {
       ),
     );
     refreshOrders();
+  }
+
+  void logOut() {
+    tokenStorage.logOut();
+    navigator?.pushAndRemoveUntil(
+      CupertinoPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
   }
 }

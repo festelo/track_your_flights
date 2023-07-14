@@ -262,13 +262,31 @@ class _OrdersBarState extends PresenterState<OrdersBar>
                       : OrderDetails(
                           order: openedOrder,
                           onFlightEdit: (f) => ref
-                              .watch(presenter)
+                              .read(presenter)
                               .changeOrderFlight(openedOrder.id, f),
                         ),
                 ),
               ],
             ),
           ),
+          Row(
+            children: [
+              const Spacer(),
+              const IconButton(
+                onPressed: null,
+                icon: Icon(
+                  Icons.info_outline,
+                ),
+              ),
+              IconButton(
+                onPressed: ref.watch(presenter).logOut,
+                icon: const Icon(
+                  Icons.logout,
+                  color: Colors.blue,
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
