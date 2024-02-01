@@ -43,13 +43,13 @@ final _localUriResolver = UriResolver(
 
 final _prodUriResolver = UriResolver(
   scheme: 'https',
-  endpoint: 'flights.festelo.tk',
+  endpoint: 'flights.festelo.net',
   path: 'api',
 );
 
 final _localWsUri = Uri.parse('ws://localhost:3001/');
 
-final _prodWsUri = Uri.parse('wss://flights.festelo.tk/ws');
+final _prodWsUri = Uri.parse('wss://flights.festelo.net/ws');
 
 UriResolver get _uriResolver => _envConfig == EnvironmentConfiguration.prod
     ? _prodUriResolver

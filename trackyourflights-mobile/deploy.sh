@@ -1,1 +1,1 @@
-scp -r build/web/* root@festelo.tk:~/flights_static/
+scp -r build/web/* root@festelo.net:~/flights_static/
